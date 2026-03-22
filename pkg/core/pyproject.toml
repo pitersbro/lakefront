@@ -1,0 +1,20 @@
+[project]
+name = "polon-core"
+version = "0.1.0"
+description = "Core library for Lakehouse Observability Platform"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "duckdb>=1.0.0,<2.0.0",
+    "pyarrow>=23.0.1",
+]
+
+
+[build-system]
+requires = ["uv_build>=0.10.3,<0.11.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = "src"
+namespace = true
+module-name = "polon.core"

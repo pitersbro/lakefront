@@ -1,0 +1,46 @@
+[project]
+name = "polon"
+version = "0.1.0"
+description = "Lakehouse Observability Platform"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.uv.workspace]
+members = [
+  "pkg/core",
+  "pkg/cli",
+  "pkg/tui"
+]
+
+[dependency-groups]
+dev = [
+    "deptry>=0.24.0",
+    "ipython>=8.38.0",
+    "pytest>=9.0.2",
+    "ruff>=0.15.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = "pkg/*/src"  
+addopts = "-vv --maxfail=1 --tb=short"
+markers = [
+    "integration: tests requiring external services like Docker",
+]
+
+[tool.deptry]
+ignore = [
+    "DEP003"
+]
+
+[tool.ruff.lint]
+select = ["I", "TID"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = false
+known-first-party = ["lop"]
+combine-as-imports = true
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
