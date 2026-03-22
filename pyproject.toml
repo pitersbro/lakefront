@@ -1,5 +1,5 @@
 [project]
-name = "polon"
+name = "peak"
 version = "0.1.0"
 description = "Lakehouse Observability Platform"
 readme = "README.md"
