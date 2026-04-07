@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install dev deps
+        run: uv sync --all-packages
+
+      - name: Ruff lint
+        run: uv run ruff check .
+
+      - name: Deptry
+        run: uv run deptry .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [core, cli, tui]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install workspace
+        run: uv sync --all-packages
+
+      - name: Run tests — ${{ matrix.package }}
+        run: uv run pytest pkg/${{ matrix.package }}/tests
+
+  release:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install dev deps
+        run: uv sync --all-packages
+
+      - name: Bump patch version
+        id: bump
+        run: |
+          OLD=$(uv version --short)
+          uv version --bump patch
+          NEW=$(uv version --short)
+          echo "old=$OLD" >> $GITHUB_OUTPUT
+          echo "new=$NEW" >> $GITHUB_OUTPUT
+
+      - name: Commit & tag
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml
+          git commit -m "chore: bump version ${{ steps.bump.outputs.old }} → ${{ steps.bump.outputs.new }}"
+          git tag "v${{ steps.bump.outputs.new }}"
+          git push --follow-tags
+
+      - name: Build
+        run: uv build
+
+      - name: Publish to PyPI
+        run: uv publish dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
