@@ -5,7 +5,7 @@ from .models import ProjectDTO, ProjectRepository
 class ProjectManager:
     def __init__(self):
         if not DB_PATH.exists():
-            raise RuntimeError("database not initialized. run: polon db init")
+            raise RuntimeError("database not initialized. run: lakefront db init")
         self.repo = ProjectRepository()
 
     def create(self, name: str) -> ProjectDTO:

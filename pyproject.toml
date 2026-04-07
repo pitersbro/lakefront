@@ -1,5 +1,5 @@
 [project]
-name = "peak"
+name = "lakefront"
 version = "0.1.0"
 description = "Lakehouse Observability Platform"
 readme = "README.md"

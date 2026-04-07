@@ -9,10 +9,10 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "peak",
-    "peak-cli",
-    "peak-core",
-    "peak-tui",
+    "lakefront",
+    "lakefront-cli",
+    "lakefront-core",
+    "lakefront-tui",
 ]
 
 [[package]]
@@ -264,6 +264,76 @@ wheels = [
 ]
 
 [[package]]
+name = "lakefront"
+version = "0.1.0"
+source = { virtual = "." }
+
+[package.dev-dependencies]
+dev = [
+    { name = "deptry" },
+    { name = "ipython", version = "8.38.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "ipython", version = "9.10.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
+    { name = "ipython", version = "9.11.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "deptry", specifier = ">=0.24.0" },
+    { name = "ipython", specifier = ">=8.38.0" },
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "ruff", specifier = ">=0.15.1" },
+]
+
+[[package]]
+name = "lakefront-cli"
+version = "0.1.0"
+source = { editable = "pkg/cli" }
+dependencies = [
+    { name = "lakefront-core" },
+    { name = "typer" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "lakefront-core", editable = "pkg/core" },
+    { name = "typer", specifier = ">=0.24,<1.0.0" },
+]
+
+[[package]]
+name = "lakefront-core"
+version = "0.1.0"
+source = { editable = "pkg/core" }
+dependencies = [
+    { name = "duckdb" },
+    { name = "pyarrow" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "duckdb", specifier = ">=1.0.0,<2.0.0" },
+    { name = "pyarrow", specifier = ">=23.0.1" },
+]
+
+[[package]]
+name = "lakefront-tui"
+version = "0.1.0"
+source = { editable = "pkg/tui" }
+dependencies = [
+    { name = "lakefront-core" },
+    { name = "textual" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "lakefront-core", editable = "pkg/core" },
+    { name = "textual", specifier = "<=9.0.0" },
+]
+
+[[package]]
 name = "linkify-it-py"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -341,76 +411,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/81/76/a1e769043c0c0c9fe391b702539d594731a4362334cdf4dc25d0c09761e7/parso-0.8.6.tar.gz", hash = "sha256:2b9a0332696df97d454fa67b81618fd69c35a7b90327cbe6ba5c92d2c68a7bfd", size = 401621, upload-time = "2026-02-09T15:45:24.425Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b6/61/fae042894f4296ec49e3f193aff5d7c18440da9e48102c3315e1bc4519a7/parso-0.8.6-py2.py3-none-any.whl", hash = "sha256:2c549f800b70a5c4952197248825584cb00f033b29c692671d3bf08bf380baff", size = 106894, upload-time = "2026-02-09T15:45:21.391Z" },
-]
-
-[[package]]
-name = "peak"
-version = "0.1.0"
-source = { virtual = "." }
-
-[package.dev-dependencies]
-dev = [
-    { name = "deptry" },
-    { name = "ipython", version = "8.38.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "ipython", version = "9.10.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
-    { name = "ipython", version = "9.11.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "deptry", specifier = ">=0.24.0" },
-    { name = "ipython", specifier = ">=8.38.0" },
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "ruff", specifier = ">=0.15.1" },
-]
-
-[[package]]
-name = "peak-cli"
-version = "0.1.0"
-source = { editable = "pkg/cli" }
-dependencies = [
-    { name = "peak-core" },
-    { name = "typer" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "peak-core", editable = "pkg/core" },
-    { name = "typer", specifier = ">=0.24,<1.0.0" },
-]
-
-[[package]]
-name = "peak-core"
-version = "0.1.0"
-source = { editable = "pkg/core" }
-dependencies = [
-    { name = "duckdb" },
-    { name = "pyarrow" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "duckdb", specifier = ">=1.0.0,<2.0.0" },
-    { name = "pyarrow", specifier = ">=23.0.1" },
-]
-
-[[package]]
-name = "peak-tui"
-version = "0.1.0"
-source = { editable = "pkg/tui" }
-dependencies = [
-    { name = "peak-core" },
-    { name = "textual" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "peak-core", editable = "pkg/core" },
-    { name = "textual", specifier = "<=9.0.0" },
 ]
 
 [[package]]

@@ -6,7 +6,7 @@ from .manager import ProjectManager
 def get_version() -> str:
     import importlib.metadata as pkg
 
-    return pkg.version("peak-core")
+    return pkg.version("lakefront-core")
 
 
 __all__ = ["ProjectManager", "Explorer", "bootstrap", "teardown", "get_version"]

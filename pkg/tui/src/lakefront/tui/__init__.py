@@ -1,4 +1,4 @@
-from peak.core import ProjectManager
+from lakefront.core import ProjectManager
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Center, Horizontal, Vertical
@@ -205,7 +205,7 @@ class SplashScreen(Screen):
             confirm.focus()
 
 
-class PeakApp(App):
+class LakeFrontApp(App):
     TITLE = "Lakehouse Observability Platform"
     BINDINGS = [
         Binding("q", "quit", "Quit"),

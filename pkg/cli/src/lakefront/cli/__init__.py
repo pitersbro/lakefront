@@ -12,27 +12,46 @@ app.add_typer(db_app, name="db")
 console = Console()
 
 
-@db_app.command()
+@db_app.command(
+    help="Initialize the lakefront database. Run this command before using any other commands."
+)
 def init():
-    from peak.core import bootstrap
+    from lakefront.core import bootstrap
 
     console.print("[bold green]Initializing database...[/]")
     bootstrap()
 
 
+@db_app.command(help="Open a duckdb shell connected to the lakefront database.")
+def shell():
+    """Open a duckdb shell connected to the lakefront database.
+
+    Usage:
+    $ lakefront db shell
+    $ db: SELECT * FROM projects;
+    $ db: show tables;
+    $ db: describe projects;
+    $ db:.exit
+    """
+    import subprocess
+
+    from lakefront.core.config import DB_PATH
+
+    subprocess.run(["duckdb", str(DB_PATH)], check=True)
+
+
 @db_app.command()
 def reset():
-    from peak.core import bootstrap, teardown
+    from lakefront.core import bootstrap, teardown
 
-    console.print("[bold red]Resetting database...[/]")
-    teardown()
     console.print("[bold green]Re-initializing database...[/]")
+    teardown()
     bootstrap()
 
 
 @projects.command("list")
 def list_projects():
-    from peak.core import ProjectManager
+    from lakefront.core import ProjectManager
 
     pm = ProjectManager()
     projects = pm.list()
@@ -47,13 +66,13 @@ def list_projects():
 
 @app.command()
 def version():
-    from peak.core import get_version
+    from lakefront.core import get_version
 
-    console.print(f"[white]Peak v{get_version()} [/]")
+    console.print(f"[white]lakefront v{get_version()} [/]")
 
 
 @app.command()
 def ui():
-    from peak.tui import PeakApp
+    from lakefront.tui import LakeFrontApp
 
-    PeakApp().run()
+    LakeFrontApp().run()

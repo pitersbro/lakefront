@@ -1,4 +1,4 @@
-# Peak
+# Lakefront
 
 Lakehouse Observability Platform
 
@@ -11,22 +11,20 @@ Powered by DuckDB.
 ## Install
 
 ```bash
-git clone https://github.com/you/peak
-cd peak
-uv sync
+pip install lakefront
 ```
 
 ## Setup
 
 ```bash
-peak db init       # initialize local database
-peak db reset      # wipe and reinitialize
+lakefront db init       # initialize local database
+lakefront db reset      # wipe and reinitialize
 ```
 
-State is stored in `~/.config/peak/` — two files:
+State is stored in `~/.config/lakefront/` — two files:
 
 ```
-~/.config/peak/
+~/.config/lakefront/
 ├── .db           # projects + sources (DuckDB)
 └── .project      # active project name
 ```
@@ -34,7 +32,7 @@ State is stored in `~/.config/peak/` — two files:
 ## Usage
 
 ```bash
-peak explore       # launch TUI
+lakefront ui       # launch TUI
 ```
 
 ### TUI keybindings
