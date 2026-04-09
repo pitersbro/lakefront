@@ -55,13 +55,52 @@ export LAKEFRONT_S3__ACCESS_KEY=...
 export LAKEFRONT_S3__SECRET_KEY=...
 ```
 
+### Project Management
+
+Projects are the top-level organisational unit in Lakefront. Each project lives in its own directory under `~/.lakefront/projects/` and can be pinned to a config profile.
+
+```
+~/.lakefront/projects/
+└── my-project/
+    ├── project.toml      ← metadata + pinned profile
+    └── results/          ← analysis outputs
+```
+
+```bash
+# List all projects
+uv run lakefront projects list
+
+# Create a new project
+uv run lakefront projects create my-project -d "EDA on S3 parquet" -p staging
+
+# Inspect a project
+uv run lakefront projects inspect my-project
+
+# Delete a project (prompts for confirmation)
+uv run lakefront projects delete my-project
+uv run lakefront projects delete my-project --yes
+```
+
+### Source Management
+
+Data sources are attached to a project and point to a local path or S3 prefix.
+
+```bash
+# Add a source
+uv run lakefront projects source add -p my-project -n raw -k s3 --path s3://bucket/raw/
+uv run lakefront projects source add -p my-project -n local -k local --path /data/parquet/
+
+# Remove a source
+uv run lakefront projects source remove -p my-project -n raw
+```
+
 ---
 
 ## Project Structure
 
 ```
 pkg/
-├── core/   # DuckDB logic, config models, settings
+├── core/   # config models, settings, project & source service
 ├── cli/    # Typer entrypoint and sub-commands
 └── tui/    # Textual TUI app (in progress)
 ```

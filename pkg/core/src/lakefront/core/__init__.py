@@ -1,5 +1,5 @@
 from .config import ConfigurationService
-from .manager import ProjectManager
+from .manager import ProjectService
 
 
 def get_version() -> str:
@@ -10,6 +10,6 @@ def get_version() -> str:
 
 __all__ = [
     "ConfigurationService",
-    "ProjectManager",
+    "ProjectService",
     "get_version",
 ]
