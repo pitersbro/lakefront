@@ -1,5 +1,4 @@
-from .bootstrap import bootstrap, teardown
-from .explorer import Explorer
+from .config import ConfigurationService
 from .manager import ProjectManager
 
 
@@ -9,4 +8,8 @@ def get_version() -> str:
     return pkg.version("lakefront-core")
 
 
-__all__ = ["ProjectManager", "Explorer", "bootstrap", "teardown", "get_version"]
+__all__ = [
+    "ConfigurationService",
+    "ProjectManager",
+    "get_version",
+]
