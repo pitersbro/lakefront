@@ -8,6 +8,7 @@ dependencies = [
     "duckdb>=1.0.0,<2.0.0",
     "pyarrow>=23.0.1",
     "pydantic-settings[toml]>=2.13.1",
+    "tomli-w>=1.2.0",
 ]
 
 

@@ -8,9 +8,14 @@ projects = typer.Typer()
 app.add_typer(projects, name="projects")
 db_app = typer.Typer()
 app.add_typer(db_app, name="db")
+from lakefront.cli.projects import projects_cli
+
 from .config import config_cli
 
+app.add_typer(projects_cli)
+
 app.add_typer(config_cli)
+app.add_typer(projects_cli)
 
 
 console = Console()
