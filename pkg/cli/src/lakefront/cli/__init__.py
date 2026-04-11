@@ -1,5 +1,5 @@
 import typer
-from lakefront.core import initialize
+from lakefront.core import ProjectNotFoundError, get_project, initialize
 from rich.console import Console
 
 from .config import config_cli
@@ -45,4 +45,10 @@ def ui(
 ):
     from lakefront.tui.app import LakefrontApp
 
-    LakefrontApp(project).run()
+    try:
+        ctx = get_project(project)
+    except ProjectNotFoundError as e:
+        console.print(f"[bold red]{e}[/]")
+        raise typer.Exit(1)
+
+    LakefrontApp(ctx).run()
