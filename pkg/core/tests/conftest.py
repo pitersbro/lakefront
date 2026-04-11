@@ -1,5 +1,6 @@
 import tempfile
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 from lakefront.core import (
@@ -49,7 +50,28 @@ def mock_project_model():
     )
 
 
+@pytest.fixture
+def mock_settings():
+    s = MagicMock()  # no spec — allows arbitrary attribute access
+    s.duckdb = MagicMock()
+    s.duckdb.threads = 4
+    s.duckdb.memory_limit = "2GB"
+    s.s3 = MagicMock()
+    s.s3.endpoint = ""
+    return s
+
+
+@pytest.fixture
+def patched_load_settings(mock_settings):
+    with patch("lakefront.core.config.load_settings", return_value=mock_settings) as m:
+        yield m
+
+
 @pytest.fixture(scope="function")
-def ctx(monkeypatch, mock_project_model, mock_projects_dir):
+def ctx(
+    monkeypatch, mock_project_model, mock_projects_dir, mock_home_dir, mock_settings
+):
     monkeypatch.setattr("lakefront.core.config.PROJECTS_DIR", mock_projects_dir)
+    monkeypatch.setattr("lakefront.core.config.LAKEFRONT_HOME", mock_home_dir)
+    monkeypatch.setattr("lakefront.core.main.load_settings", lambda **_: mock_settings)
     return ProjectContext.from_model(mock_project_model)
