@@ -5,8 +5,8 @@ from .exceptions import (
     SourceExistsError,
     SourceNotFoundError,
 )
+from .main import ProjectContext
 from .models import DataSource, Project
-from .viewer import ProjectViewer
 
 
 def get_version() -> str:
@@ -15,10 +15,21 @@ def get_version() -> str:
     return pkg.version("lakefront-core")
 
 
+def get_project(name: str) -> ProjectContext:
+    project = ProjectConfigurationService.get(name)
+    return ProjectContext.from_model(project)
+
+
+def list_projects() -> list[str]:
+    return ProjectConfigurationService.list_projects()
+
+
 __all__ = [
     "ProfileConfigurationService",
     "ProjectConfigurationService",
-    "ProjectViewer",
+    "ProjectContext",
+    "get_project",
+    "list_projects",
     "get_version",
     "initialize",
     "ProjectExistsError",

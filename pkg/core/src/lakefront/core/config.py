@@ -51,9 +51,9 @@ class DuckDBConfig(BaseModel):
 
 
 class S3Config(BaseModel):
-    endpoint: str = ""
-    access_key: str = Field(default="", json_schema_extra={"secret": True})
-    secret_key: str = Field(default="", json_schema_extra={"secret": True})
+    endpoint: str = "http://localhost:9000"
+    access_key: str = Field(default="root", json_schema_extra={"secret": True})
+    secret_key: str = Field(default="password", json_schema_extra={"secret": True})
 
 
 # ---------------------------------------------------------------------------
