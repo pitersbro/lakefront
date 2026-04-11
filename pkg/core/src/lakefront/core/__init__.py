@@ -1,5 +1,12 @@
-from .config import ConfigurationService
-from .manager import ProjectService
+from .config import ProfileConfigurationService, ProjectConfigurationService, initialize
+from .exceptions import (
+    ProjectExistsError,
+    ProjectNotFoundError,
+    SourceExistsError,
+    SourceNotFoundError,
+)
+from .models import DataSource, Project
+from .viewer import ProjectViewer
 
 
 def get_version() -> str:
@@ -9,7 +16,15 @@ def get_version() -> str:
 
 
 __all__ = [
-    "ConfigurationService",
-    "ProjectService",
+    "ProfileConfigurationService",
+    "ProjectConfigurationService",
+    "ProjectViewer",
     "get_version",
+    "initialize",
+    "ProjectExistsError",
+    "ProjectNotFoundError",
+    "SourceExistsError",
+    "SourceNotFoundError",
+    "DataSource",
+    "Project",
 ]

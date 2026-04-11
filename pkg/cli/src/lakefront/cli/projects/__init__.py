@@ -1,12 +1,12 @@
 import typer
-from lakefront.core.exceptions import (
+from lakefront.core import (
+    DataSource,
+    ProjectConfigurationService,
     ProjectExistsError,
     ProjectNotFoundError,
     SourceExistsError,
     SourceNotFoundError,
 )
-from lakefront.core.manager import ProjectService
-from lakefront.core.models import DataSource
 from rich.console import Console
 from rich.table import Table
 
@@ -19,7 +19,7 @@ projects_cli.add_typer(source_cli)
 
 @projects_cli.command(name="list")
 def list_projects():
-    names = ProjectService.list_projects()
+    names = ProjectConfigurationService.list_projects()
     if not names:
         console.print("[yellow]No projects found.[/]")
         return
@@ -34,7 +34,9 @@ def create_project(
     profile: str = typer.Option("default", "--profile", "-p"),
 ):
     try:
-        project = ProjectService.create(name, description=description, profile=profile)
+        project = ProjectConfigurationService.create(
+            name, description=description, profile=profile
+        )
         console.print(
             f"[bold green]Created project '{project.name}' (profile: {project.profile})[/]"
         )
@@ -48,7 +50,7 @@ def inspect_project(
     name: str = typer.Argument(..., help="Project name"),
 ):
     try:
-        project = ProjectService.get(name)
+        project = ProjectConfigurationService.get(name)
     except ProjectNotFoundError as e:
         console.print(f"[bold red]{e}[/]")
         raise typer.Exit(1)
@@ -74,7 +76,7 @@ def delete_project(
     if not confirm:
         typer.confirm(f"Delete project '{name}'?", abort=True)
     try:
-        ProjectService.delete(name)
+        ProjectConfigurationService.delete(name)
         console.print(f"[bold green]Deleted project '{name}'.[/]")
     except ProjectNotFoundError as e:
         console.print(f"[bold red]{e}[/]")
@@ -91,7 +93,7 @@ def add_source(
 ):
     try:
         source = DataSource(name=name, kind=kind, path=path, description=description)
-        ProjectService.add_source(project, source)
+        ProjectConfigurationService.add_source(project, source)
         console.print(f"[bold green]Added source '{name}' to '{project}'.[/]")
     except (ProjectNotFoundError, SourceExistsError) as e:
         console.print(f"[bold red]{e}[/]")
@@ -104,7 +106,7 @@ def remove_source(
     name: str = typer.Option(..., "--name", "-n"),
 ):
     try:
-        ProjectService.remove_source(project, name)
+        ProjectConfigurationService.remove_source(project, name)
         console.print(f"[bold green]Removed source '{name}' from '{project}'.[/]")
     except (ProjectNotFoundError, SourceNotFoundError) as e:
         console.print(f"[bold red]{e}[/]")
