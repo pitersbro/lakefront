@@ -2,14 +2,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Literal
 
 import duckdb
 import pandas as pd
 import pyarrow as pa
-import pyarrow.dataset as ds
 
 from .config import Settings, load_settings
+from .exceptions import SourceTypeInvalidError
 from .models import DataSource, Project
+
+SourceType = Literal["parquet", "dataset", "csv"]
 
 
 @dataclass
@@ -17,11 +20,25 @@ class Source:
     ctx: ProjectContext
     source: DataSource
     path: Path = field(init=False)
-    data: ds.Dataset = field(init=False)
+    type: SourceType = field(init=False)
 
     def __post_init__(self):
         self.path = Path(self.source.path)
-        self.data = ds.dataset(self.path.as_posix(), format="parquet")
+        self._resolve_type()
+
+    def _resolve_type(self):
+        if self.path.is_file() and self.path.suffix == ".parquet":
+            self.type = "parquet"
+            return
+        elif self.path.is_dir() and any(
+            p.suffix == ".parquet" for p in self.path.rglob("*.parquet")
+        ):
+            self.type = "dataset"
+            return
+        elif self.path.is_file() and self.path.suffix == ".csv":
+            self.type = "csv"
+            return
+        raise SourceTypeInvalidError(f"Unsupported source type for path: {self.path}")
 
     def __str__(self):
         return f"{self.source.name} ({self.source.kind})"
@@ -66,7 +83,15 @@ class QueryEngineMixin:
 
     def register_source(self, source: Source):
         conn = self.get_connection()
-        conn.register(source.source.name, source.data)
+        name = source.source.name
+        path = source.path.as_posix()
+        if source.type == "csv":
+            sql = f"""CREATE VIEW {name} AS SELECT * FROM read_csv_auto('{path}')"""
+        elif source.type == "dataset":
+            sql = f"""CREATE VIEW {name} AS SELECT * FROM read_parquet('{path}/**/*.parquet')"""
+        else:
+            sql = f"""CREATE VIEW {name} AS SELECT * FROM read_parquet('{path}')"""
+        conn.execute(sql)
 
     def query(self, sql: str) -> QueryResult:
         conn = self.get_connection()

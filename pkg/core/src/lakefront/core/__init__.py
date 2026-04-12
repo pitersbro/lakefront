@@ -4,6 +4,7 @@ from .exceptions import (
     ProjectNotFoundError,
     SourceExistsError,
     SourceNotFoundError,
+    SourceTypeInvalidError,
 )
 from .main import ProjectContext
 from .models import DataSource, Project
@@ -36,6 +37,7 @@ __all__ = [
     "ProjectNotFoundError",
     "SourceExistsError",
     "SourceNotFoundError",
+    "SourceTypeInvalidError",
     "DataSource",
     "Project",
 ]

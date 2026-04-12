@@ -43,7 +43,13 @@ def mock_project_model():
         profile="default",
         sources=[
             DataSource(
-                name="file-1", kind="local", path=(HERE / "file1.parquet").as_posix()
+                name="file_1", kind="local", path=(HERE / "file1.parquet").as_posix()
+            ),
+            DataSource(
+                name="file_2", kind="local", path=(HERE / "file2.csv").as_posix()
+            ),
+            DataSource(
+                name="dataset_1", kind="local", path=(HERE / "dataset1").as_posix()
             ),
             # DataSource(name="s3-source", kind="s3", path="s3://my-bucket/data/"),
         ],
@@ -65,6 +71,14 @@ def mock_settings():
 def patched_load_settings(mock_settings):
     with patch("lakefront.core.config.load_settings", return_value=mock_settings) as m:
         yield m
+
+
+@pytest.fixture(scope="function")
+def patch_env(monkeypatch, mock_projects_dir, mock_home_dir, mock_settings):
+    monkeypatch.setattr("lakefront.core.config.PROJECTS_DIR", mock_projects_dir)
+    monkeypatch.setattr("lakefront.core.config.LAKEFRONT_HOME", mock_home_dir)
+    monkeypatch.setattr("lakefront.core.main.load_settings", lambda **_: mock_settings)
+    yield
 
 
 @pytest.fixture(scope="function")
