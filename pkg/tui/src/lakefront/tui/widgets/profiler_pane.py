@@ -9,6 +9,8 @@ from textual.widgets import Static
 class ProfilerPane(Widget):
     """Right pane: summary statistics for the active source or result."""
 
+    can_focus = False
+
     def __init__(self, ctx: ProjectContext, **kwargs):
         super().__init__(**kwargs)
         self.ctx = ctx

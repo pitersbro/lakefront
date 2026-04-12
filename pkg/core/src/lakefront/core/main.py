@@ -9,7 +9,7 @@ import pandas as pd
 import pyarrow as pa
 
 from .config import Settings, load_settings
-from .exceptions import SourceTypeInvalidError
+from .exceptions import SourceNotFoundError, SourceTypeInvalidError
 from .models import DataSource, Project
 
 SourceType = Literal["parquet", "dataset", "csv"]
@@ -21,6 +21,10 @@ class Source:
     source: DataSource
     path: Path = field(init=False)
     type: SourceType = field(init=False)
+
+    @property
+    def name(self) -> str:
+        return self.source.name
 
     def __post_init__(self):
         self.path = Path(self.source.path)
@@ -108,6 +112,9 @@ class ProjectContext(QueryEngineMixin):
         ctx = ProjectContext.from_model(project_model)
         print(ctx.list_source_names())
         result = ctx.query("SELECT * FROM my_source LIMIT 10").fetchdf()
+        ctx.describe_source("my_source")
+        ctx.group_sources_by_type()
+
     """
 
     name: str
@@ -131,5 +138,26 @@ class ProjectContext(QueryEngineMixin):
             _sources=project.sources,
         )
 
-    def list_source_names(self) -> list[str]:
+    def sources_by_type(self) -> dict[str, list[str]]:
+        groups: dict[SourceType, list[str]] = {}
+        for src in self.sources:
+            groups.setdefault(src.type, []).append(src.name)
+        sorted_groups = {
+            k: sorted(v) for k, v in sorted(groups.items(), key=lambda x: x[0])
+        }
+        return sorted_groups
+
+    def source_names(self) -> list[str]:
         return [src.source.name for src in self.sources]
+
+    def source_get(self, name: str) -> Source:
+        source = next((s for s in self.sources if s.name == name), None)
+        if not source:
+            raise SourceNotFoundError(
+                f'Source with name "{name}" not found in project.'
+            )
+        return source
+
+    def source_describe(self, name: str) -> QueryResult:
+        src = self.source_get(name)
+        return self.query(f"DESCRIBE {src.name}")

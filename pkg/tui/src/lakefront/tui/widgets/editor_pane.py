@@ -3,12 +3,15 @@ from __future__ import annotations
 from lakefront.core import ProjectContext
 from textual.app import ComposeResult
 from textual.binding import Binding
+from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Static, TextArea
 
 
 class EditorPane(Widget):
     """Middle-top pane: DuckDB SQL editor."""
+
+    can_focus = True
 
     def __init__(self, ctx: ProjectContext, **kwargs):
         super().__init__(**kwargs)
@@ -48,6 +51,7 @@ class EditorPane(Widget):
         "GROUP BY 1, 2, 4, 5\n"
         "LIMIT  1000;"
     )
+    _PLACEHOLDER_SQL = "select * from mycsv"
 
     def compose(self) -> ComposeResult:
         yield Static("SQL EDITOR", classes="pane-title")
@@ -64,9 +68,6 @@ class EditorPane(Widget):
 
     def action_save_script(self) -> None:
         self.notify("save script: not yet implemented")
-
-
-from textual.message import Message
 
 
 class QueryRequested(Message):

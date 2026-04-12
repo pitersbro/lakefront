@@ -10,9 +10,12 @@ from textual.widgets import DataTable, Static
 class ResultsPane(Widget):
     """Middle-bottom pane: query results as a scrollable DataTable."""
 
+    can_focus = True
+
     def __init__(self, ctx: ProjectContext, **kwargs):
         super().__init__(**kwargs)
         self.ctx = ctx
+        self.table = DataTable(id="results-table", zebra_stripes=True)
 
     BINDINGS = [
         Binding("ctrl+e", "export", "Export CSV", show=True),
@@ -51,22 +54,35 @@ class ResultsPane(Widget):
             classes="meta-bar",
             id="meta-bar",
         )
-        yield DataTable(id="results-table", zebra_stripes=True)
+        yield self.table
 
-    def on_mount(self) -> None:
-        table = self.query_one("#results-table", DataTable)
-        table.cursor_type = "row"
-
-    def load_dataframe(self, df) -> None:
-        """Populate the DataTable from a pandas DataFrame."""
-        table = self.query_one("#results-table", DataTable)
-        table.clear(columns=True)
-        for col in df.columns:
-            table.add_column(f"{col} [{df[col].dtype}]", key=col)
-        for row in df.itertuples(index=False):
-            table.add_row(*[str(v) for v in row])
-        meta = self.query_one("#meta-bar", Static)
-        meta.update(f"✓ {len(df):,} rows · {len(df.columns)} cols")
+    # def on_mount(self) -> None:
+    #     table = self.query_one("#results-table", DataTable)
+    #     table.cursor_type = "row"
 
     def action_export(self) -> None:
         self.notify("export CSV: not yet implemented")
+
+    def run_query(self, sql: str) -> None:
+        """Execute the query and display results."""
+        try:
+            df = self.ctx.query(sql).df()  # or however you run queries
+
+            # Clear previous results
+            self.table.clear()
+            self.query_one("#meta-bar", Static).update(
+                f"Executed: {sql[:50]}..." if len(sql) > 50 else f"Executed: {sql}"
+            )
+
+            # Add columns
+            if not df.empty:
+                self.table.columns.clear()
+                self.table.add_columns(*df.columns)
+                self.table.add_rows(df.itertuples(index=False, name=None))
+                self.notify(f"Query returned {len(df)} rows", severity="information")
+            else:
+                self.notify("Query returned no rows", severity="information")
+
+        except Exception as e:
+            self.table.clear()
+            self.notify(f"Error executing query:\n{str(e)}", severity="error")

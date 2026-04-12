@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from lakefront.core import ProjectContext
-from lakefront.tui.widgets.editor_pane import EditorPane
+from lakefront.tui.widgets.editor_pane import EditorPane, QueryRequested
 from lakefront.tui.widgets.profiler_pane import ProfilerPane
 from lakefront.tui.widgets.results_pane import ResultsPane
 from lakefront.tui.widgets.source_pane import SourcePane
@@ -20,7 +20,7 @@ class ProjectScreen(Screen):
         self.ctx = ctx
 
     BINDINGS = [
-        Binding("tab", "cycle_pane", "Switch pane", show=True),
+        # Binding("tab", "cycle_pane", "Switch pane", show=True),
         Binding("q", "app.pop_screen", "Back", show=True),
     ]
 
@@ -62,8 +62,8 @@ class ProjectScreen(Screen):
     }
     """
 
-    PANES = ["source-pane", "editor-pane", "results-pane", "profiler-pane"]
-    _focus_index: int = 0
+    # PANES = ["source-pane", "editor-pane", "results-pane", "profiler-pane"]
+    # _focus_index: int = 0
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -75,7 +75,16 @@ class ProjectScreen(Screen):
             yield ProfilerPane(self.ctx, id="profiler-pane")
         yield Footer()
 
-    def action_cycle_pane(self) -> None:
-        self._focus_index = (self._focus_index + 1) % len(self.PANES)
-        widget = self.query_one(f"#{self.PANES[self._focus_index]}")
-        widget.focus()
+    # ── THIS IS THE KEY FIX ──
+    def on_query_requested(self, message: QueryRequested) -> None:
+        """Receive query from EditorPane and forward it to ResultsPane."""
+        try:
+            results_pane = self.query_one("#results-pane", ResultsPane)
+            results_pane.run_query(message.sql)
+        except Exception as e:
+            self.notify(f"Could not run query: {e}", severity="error")
+
+    # def action_cycle_pane(self) -> None:
+    #     self._focus_index = (self._focus_index + 1) % len(self.PANES)
+    #     widget = self.query_one(f"#{self.PANES[self._focus_index]}")
+    #     widget.focus()
