@@ -3,10 +3,9 @@ from pathlib import Path
 
 import tomli_w
 import tomllib
-from pydantic import BaseModel, Field
+from pydantic import Field
 from pydantic_settings import (
     BaseSettings,
-    TomlConfigSettingsSource,
 )
 
 from .exceptions import (
@@ -15,9 +14,22 @@ from .exceptions import (
     SourceExistsError,
     SourceNotFoundError,
 )
-from .models import DataSource, Project, utcnow
+from .models import DataSource, DuckDBConfig, Project, S3Config, utcnow
 
-LAKEFRONT_HOME = Path("~/.lakefront").expanduser()
+
+def get_env_var(name: str, default: str | None = None) -> Path:
+    """Get an environment variable with an optional default."""
+    envvar = os.getenv(name)
+    if envvar:
+        return Path(envvar).expanduser()
+    if default:
+        return Path(default).expanduser()
+    raise EnvironmentError(
+        f"Environment variable '{name}' is not set and no default provided."
+    )
+
+
+LAKEFRONT_HOME = get_env_var("LAKEFRONT_HOME", "~/.lakefront")
 CONFIG_DIR = LAKEFRONT_HOME / "config"
 PROJECTS_DIR = LAKEFRONT_HOME / "projects"
 STATE_FILE = LAKEFRONT_HOME / "state"
@@ -40,45 +52,10 @@ def get_project_path(profile: str) -> Path:
     return PROJECTS_DIR / f"{profile}.toml"
 
 
-# ---------------------------------------------------------------------------
-# Sub-models
-# ---------------------------------------------------------------------------
-
-
-class DuckDBConfig(BaseModel):
-    threads: int = 4
-    memory_limit: str = "2GB"
-
-
-class S3Config(BaseModel):
-    endpoint: str = "http://localhost:9000"
-    access_key: str = Field(default="root", json_schema_extra={"secret": True})
-    secret_key: str = Field(default="password", json_schema_extra={"secret": True})
-
-
-# ---------------------------------------------------------------------------
-# Toml source that strips secret fields
-# ---------------------------------------------------------------------------
-
-
-# class SafeTomlSource(TomlConfigSettingsSource):
-#     def __call__(self) -> dict[str, Any]:
-#         data = super().__call__()
-#         for name, field in self.settings_cls.model_fields.items():
-#             extra = field.json_schema_extra or {}
-#             if extra.get("secret"):
-#                 data.pop(name, None)
-#         return data
-#
-
-# ---------------------------------------------------------------------------
-# Settings
-# ---------------------------------------------------------------------------
-
-
 class Settings(BaseSettings):
     duckdb: DuckDBConfig = DuckDBConfig()
     s3: S3Config = S3Config()
+    path: Path | None = Field(default=None, exclude=True)
 
     model_config = {
         "env_prefix": "LAKEFRONT_",
@@ -88,25 +65,12 @@ class Settings(BaseSettings):
     @classmethod
     def from_file(cls, file_path: Path) -> "Settings":
         """Load settings from a toml file"""
+
         with file_path.open("rb") as f:
             data = tomllib.load(f)
-        return cls.model_validate(data)
-
-    # @classmethod
-    # def settings_customise_sources(
-    #     cls,
-    #     settings_cls,
-    #     init_settings,
-    #     env_settings,
-    #     dotenv_settings,
-    #     file_secret_settings,
-    # ) -> tuple[PydanticBaseSettingsSource, ...]:
-    #     return (
-    #         init_settings,
-    #         env_settings,  # LAKEFRONT_S3__ACCESS_KEY etc.
-    #         SafeTomlSource(settings_cls),  # profile toml, no secrets
-    #     )
-    #
+        obj = cls.model_validate(data)
+        obj.path = file_path
+        return obj
 
 
 def _build_template() -> str:
@@ -119,7 +83,7 @@ def _build_template() -> str:
             extra = field.json_schema_extra or {}
             if extra.get("secret"):
                 lines.append(
-                    f'# {name} = ""  # via env: LAKEFRONT_{section.upper()}__{name.upper()}'
+                    f'{name} = ""  # via env: LAKEFRONT_{section.upper()}__{name.upper()}'
                 )
             else:
                 default = field.default
@@ -140,11 +104,6 @@ def load_settings(profile: str | None = None) -> Settings:
         return Settings.from_file(config_file)
     raise FileNotFoundError(f"Profile '{profile}' not found at {config_file}.")
 
-    # return Settings(
-    #     _env_file=config_file if config_file.exists() else None,
-    #     _env_file_encoding="utf-8",
-    # )
-
 
 class ProfileConfigurationService:
     """Service for managing configuration profiles."""
@@ -158,6 +117,11 @@ class ProfileConfigurationService:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         profile_path.write_text(PROFILE_TEMPLATE)
         return profile_path
+
+    @classmethod
+    def home_dir(cls) -> Path:
+        """Get the home directory for lakefront configuration."""
+        return LAKEFRONT_HOME
 
     @classmethod
     def list_profiles(cls) -> list[str]:
@@ -271,6 +235,7 @@ class ProjectConfigurationService:
             raise SourceExistsError(
                 f"Source '{source.name}' already exists in '{name}'."
             )
+
         project.sources.append(source)
         project.updated_at = utcnow()
         cls._save(project)
