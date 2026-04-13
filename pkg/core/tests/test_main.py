@@ -1,10 +1,22 @@
 import pytest
-from lakefront.core import DataSource, Project, ProjectContext, SourceTypeInvalidError
+from lakefront.core import (
+    DataSource,
+    Project,
+    SourceNotFoundError,
+)
+
+
+@pytest.fixture(scope="module")
+def ctx():
+    from lakefront.core import get_project
+
+    proj = get_project("test-project")
+    yield proj
 
 
 def test_context_is_created(ctx):
     assert ctx.name == "test-project"
-    assert ctx.profile == "default"
+    assert ctx.profile == "testing"
     assert len(ctx.sources) == 3
 
 
@@ -30,13 +42,44 @@ def test_context_sources_can_be_grouped_by_type(ctx):
     assert len(groups["parquet"]) == 1
 
 
-def test_context_invalid_source_type_error(patch_env):
-    project = Project(
-        name="bad-project",
-        profile="default",
-        sources=[DataSource(name="weird_source", kind="local", path="/path/to/data")],
-    )
-    with pytest.raises(
-        SourceTypeInvalidError, match="Unsupported source type for path"
-    ):
-        ProjectContext.from_model(project)
+def test_context_source_not_found_error():
+    with pytest.raises(SourceNotFoundError):
+        Project(
+            name="bad-project",
+            profile="default",
+            sources=[
+                DataSource(name="weird_source", kind="local", path="/path/to/data")
+            ],
+        )
+
+
+def test_context_source_type_invalid_error():
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        Project(
+            name="bad-project",
+            profile="default",
+            sources=[
+                DataSource(name="bad_source", kind="unknown_kind", path="/path/to/data")
+            ],
+        )
+
+
+def test_context_source_attach_invalid(ctx):
+    src = "nonexisting.csv"
+    with pytest.raises(SourceNotFoundError):
+        ctx.source_attach("myfile", kind="local", path=src)
+
+
+def test_context_attach_detach_source_cycle(tmp_path, ctx):
+    src = tmp_path / "file1.csv"
+    src.touch()
+    ctx.source_attach("attached1", path=src.as_posix(), kind="local")
+    assert len(ctx.sources) == 4
+    assert ctx.query("select * from attached1").df().shape == (0, 1)
+
+    ctx.source_detach("attached1")
+    assert len(ctx.sources) == 3
+    with pytest.raises(Exception, match="Catalog Error"):
+        assert ctx.query("select * from attached1")
