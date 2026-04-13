@@ -23,7 +23,7 @@ dev = [
 
 [tool.pytest.ini_options]
 pythonpath = "pkg/*/src"  
-addopts = "-vv --maxfail=1 --tb=short"
+addopts = "-vv --maxfail=1 --tb=short --env-file=test.env"
 markers = [
     "integration: tests requiring external services like Docker",
 ]

@@ -209,4 +209,5 @@ __marimo__/
 
 scripts/
 DOCS/
+pkg/core/tests/runtime/
 

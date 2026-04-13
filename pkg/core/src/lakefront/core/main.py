@@ -8,7 +8,7 @@ import duckdb
 import pandas as pd
 import pyarrow as pa
 
-from .config import Settings, load_settings
+from .config import ProjectConfigurationService, Settings, load_settings
 from .exceptions import SourceNotFoundError, SourceTypeInvalidError
 from .models import DataSource, Project
 
@@ -90,11 +90,16 @@ class QueryEngineMixin:
         name = source.source.name
         path = source.path.as_posix()
         if source.type == "csv":
-            sql = f"""CREATE VIEW {name} AS SELECT * FROM read_csv_auto('{path}')"""
+            sql = f"""CREATE VIEW IF NOT EXISTS {name} AS SELECT * FROM read_csv_auto('{path}')"""
         elif source.type == "dataset":
-            sql = f"""CREATE VIEW {name} AS SELECT * FROM read_parquet('{path}/**/*.parquet')"""
+            sql = f"""CREATE VIEW IF NOT EXISTS {name} AS SELECT * FROM read_parquet('{path}/**/*.parquet')"""
         else:
-            sql = f"""CREATE VIEW {name} AS SELECT * FROM read_parquet('{path}')"""
+            sql = f"""CREATE VIEW IF NOT EXISTS {name} AS SELECT * FROM read_parquet('{path}')"""
+        conn.execute(sql)
+
+    def deregister_source(self, name: str):
+        conn = self.get_connection()
+        sql = f"DROP VIEW IF EXISTS {name}"
         conn.execute(sql)
 
     def query(self, sql: str) -> QueryResult:
@@ -161,3 +166,28 @@ class ProjectContext(QueryEngineMixin):
     def source_describe(self, name: str) -> QueryResult:
         src = self.source_get(name)
         return self.query(f"DESCRIBE {src.name}")
+
+    def reinitialize(self) -> ProjectContext:
+        """Reinitialize the project context, reloading all sources and settings."""
+        project = ProjectConfigurationService.get(self.name)
+        obj = ProjectContext.from_model(project)
+        self.__dict__.update(obj.__dict__)
+        return self
+
+    def source_attach(self, name: str, path: str, kind: str) -> ProjectContext:
+        """Attach a new source to the project and reinitialize the context."""
+        if any(s.name == name for s in self.sources):
+            raise ValueError(f'Source with name "{name}" already exists.')
+
+        new_source = DataSource(name=name, kind=kind, path=path)
+        ProjectConfigurationService.add_source(self.name, new_source)
+        return self.reinitialize()
+
+    def source_detach(self, name: str) -> ProjectContext:
+        """Detach a source from the project and reinitialize the context."""
+        if not any(s.name == name for s in self.sources):
+            raise SourceNotFoundError(f'Source with name "{name}" not found.')
+
+        ProjectConfigurationService.remove_source(self.name, name)
+        self.deregister_source(name)
+        return self.reinitialize()
