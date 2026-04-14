@@ -1,5 +1,5 @@
 import typer
-from lakefront.core import ProjectNotFoundError, get_project, initialize
+from lakefront import core
 from rich.console import Console
 
 from .config import config_cli
@@ -28,15 +28,13 @@ console = Console()
 )
 def init():
     console.print("[bold green]Initializing...[/]")
-    initialize()
+    core.initialize()
     console.print("[bold green]Initialization complete![/]")
 
 
 @app.command()
 def version():
-    from lakefront.core import get_version
-
-    console.print(f"[white]lakefront v{get_version()} [/]")
+    console.print(f"[white]lakefront v{core.get_version()} [/]")
 
 
 @app.command()
@@ -46,8 +44,8 @@ def ui(
     from lakefront.tui.app import LakefrontApp
 
     try:
-        ctx = get_project(project)
-    except ProjectNotFoundError as e:
+        ctx = core.get_project(project)
+    except core.ProjectNotFoundError as e:
         console.print(f"[bold red]{e}[/]")
         raise typer.Exit(1)
 
