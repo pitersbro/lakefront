@@ -1,14 +1,9 @@
 import typer
-from lakefront.core import (
-    DataSource,
-    ProjectConfigurationService,
-    ProjectExistsError,
-    ProjectNotFoundError,
-    SourceExistsError,
-    SourceNotFoundError,
-)
+from lakefront import core
 from rich.console import Console
 from rich.table import Table
+
+svc = core.ProjectConfigurationService
 
 source_cli = typer.Typer(name="source")
 projects_cli = typer.Typer(name="projects")
@@ -19,7 +14,7 @@ projects_cli.add_typer(source_cli)
 
 @projects_cli.command(name="list")
 def list_projects():
-    names = ProjectConfigurationService.list_projects()
+    names = svc.list_projects()
     if not names:
         console.print("[yellow]No projects found.[/]")
         return
@@ -34,13 +29,11 @@ def create_project(
     profile: str = typer.Option("default", "--profile", "-p"),
 ):
     try:
-        project = ProjectConfigurationService.create(
-            name, description=description, profile=profile
-        )
+        project = svc.create(name, description=description, profile=profile)
         console.print(
             f"[bold green]Created project '{project.name}' (profile: {project.profile})[/]"
         )
-    except ProjectExistsError as e:
+    except core.ProjectExistsError as e:
         console.print(f"[bold red]{e}[/]")
         raise typer.Exit(1)
 
@@ -50,8 +43,8 @@ def inspect_project(
     name: str = typer.Argument(..., help="Project name"),
 ):
     try:
-        project = ProjectConfigurationService.get(name)
-    except ProjectNotFoundError as e:
+        project = svc.get(name)
+    except core.ProjectNotFoundError as e:
         console.print(f"[bold red]{e}[/]")
         raise typer.Exit(1)
 
@@ -76,9 +69,9 @@ def delete_project(
     if not confirm:
         typer.confirm(f"Delete project '{name}'?", abort=True)
     try:
-        ProjectConfigurationService.delete(name)
+        svc.delete(name)
         console.print(f"[bold green]Deleted project '{name}'.[/]")
-    except ProjectNotFoundError as e:
+    except core.ProjectNotFoundError as e:
         console.print(f"[bold red]{e}[/]")
         raise typer.Exit(1)
 
@@ -92,10 +85,12 @@ def add_source(
     description: str = typer.Option("", "--description", "-d"),
 ):
     try:
-        source = DataSource(name=name, kind=kind, path=path, description=description)
-        ProjectConfigurationService.add_source(project, source)
+        source = core.DataSource(
+            name=name, kind=kind, path=path, description=description
+        )
+        svc.add_source(project, source)
         console.print(f"[bold green]Added source '{name}' to '{project}'.[/]")
-    except (ProjectNotFoundError, SourceExistsError) as e:
+    except (core.ProjectNotFoundError, core.SourceExistsError) as e:
         console.print(f"[bold red]{e}[/]")
         raise typer.Exit(1)
 
@@ -106,8 +101,8 @@ def remove_source(
     name: str = typer.Option(..., "--name", "-n"),
 ):
     try:
-        ProjectConfigurationService.remove_source(project, name)
+        svc.remove_source(project, name)
         console.print(f"[bold green]Removed source '{name}' from '{project}'.[/]")
-    except (ProjectNotFoundError, SourceNotFoundError) as e:
+    except (core.ProjectNotFoundError, core.SourceNotFoundError) as e:
         console.print(f"[bold red]{e}[/]")
         raise typer.Exit(1)

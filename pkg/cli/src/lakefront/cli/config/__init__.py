@@ -1,7 +1,9 @@
 import typer
-from lakefront.core import ProfileConfigurationService
+from lakefront import core
 from rich.console import Console
 from rich.table import Table
+
+svc = core.ProfileConfigurationService
 
 config_cli = typer.Typer(name="config")
 console = Console()
@@ -9,7 +11,7 @@ console = Console()
 
 @config_cli.command(name="list")
 def list_profiles():
-    profiles = ProfileConfigurationService.list_profiles()
+    profiles = svc.list_profiles()
 
     console.print("[bold green]Listing all profiles...[/]")
     console.print(profiles)
@@ -17,7 +19,7 @@ def list_profiles():
 
 @config_cli.command()
 def info():
-    info = ProfileConfigurationService.info()
+    info = svc.info()
     table = Table(title="Configuration Service Info", show_header=True)
     table.add_column("Key", style="cyan")
     table.add_column("Value", style="green")
@@ -34,7 +36,7 @@ def create_profile(
 ):
     console.print(f"[bold green]Creating profile '{profile}'...[/]")
     try:
-        path = ProfileConfigurationService.create_profile(profile)
+        path = svc.create_profile(profile)
         console.print(f"[bold green]Profile created at: {path}[/]")
     except FileExistsError as e:
         console.print(f"[bold red]{e}[/]")
@@ -49,10 +51,10 @@ def inspect(
         help="The name of the profile to inspect. If not provided, lists all profiles.",
     ),
 ):
-    profile = profile or ProfileConfigurationService.get_active_profile()
+    profile = profile or svc.get_active_profile()
     console.print(f"[bold green]Inspecting profile '{profile}'...[/]")
     try:
-        config = ProfileConfigurationService.inspect_profile(profile)
+        config = svc.inspect_profile(profile)
     except FileNotFoundError:
         console.print(f"[bold red]Profile '{profile}' not found.[/]")
         raise typer.Exit()
@@ -73,7 +75,7 @@ def inspect(
 
 @config_cli.command(name="get-active")
 def get_active_profile():
-    name = ProfileConfigurationService.get_active_profile()
+    name = svc.get_active_profile()
     console.print(f"[bold green]Active profile: {name}[/]")
 
 
@@ -92,7 +94,7 @@ def set_active_profile(
 
     console.print(f"[bold green]Setting active profile to '{profile}'...[/]")
     try:
-        ProfileConfigurationService.set_active_profile(profile)
+        svc.set_active_profile(profile)
         console.print(f"[bold green]Active profile set to: {profile}[/]")
     except ValueError:
         console.print(f"[bold red]Profile '{profile}' not found.[/]")
