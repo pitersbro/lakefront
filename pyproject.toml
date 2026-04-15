@@ -4,13 +4,14 @@ version = "0.1.10"
 description = "Lakehouse Observability Platform"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
-
-[tool.uv.workspace]
-members = [
-  "pkg/core",
-  "pkg/cli",
-  "pkg/tui"
+dependencies = [
+    "duckdb>=1.0.0,<2.0.0",
+    "pandas>=2.3.3",
+    "pyarrow>=23.0.1",
+    "pydantic-settings[toml]>=2.13.1",
+    "tomli-w>=1.2.0",
+    "textual<=9.0.0",
+    "typer>=0.24,<1.0.0",
 ]
 
 [dependency-groups]
@@ -21,8 +22,20 @@ dev = [
     "ruff>=0.15.1",
 ]
 
+[project.scripts]
+lakefront = "lakefront.cli:app"
+lf = "lakefront.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.10.3,<0.11.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = "src"
+namespace = true
+
 [tool.pytest.ini_options]
-pythonpath = "pkg/*/src"  
+# pythonpath = "pkg/*/src"  
 addopts = "-vv --maxfail=1 --tb=short --env-file=test.env"
 markers = [
     "integration: tests requiring external services like Docker",

@@ -36,7 +36,7 @@ def pytest_configure(config):
         core.models.DataSource(
             name="file_1",
             kind="local",
-            path=(HERE / "pkg/core/tests/file1.parquet").as_posix(),
+            path=(HERE / "tests/core/file1.parquet").as_posix(),
         ),
     )
     proj.add_source(
@@ -44,7 +44,7 @@ def pytest_configure(config):
         core.models.DataSource(
             name="file_2",
             kind="local",
-            path=(HERE / "pkg/core/tests/file2.csv").as_posix(),
+            path=(HERE / "tests/core/file2.csv").as_posix(),
         ),
     )
     proj.add_source(
@@ -52,6 +52,6 @@ def pytest_configure(config):
         core.models.DataSource(
             name="dataset_1",
             kind="local",
-            path=(HERE / "pkg/core/tests/dataset1").as_posix(),
+            path=(HERE / "tests/core/dataset1").as_posix(),
         ),
     )

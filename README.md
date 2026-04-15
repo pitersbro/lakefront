@@ -48,7 +48,8 @@ uv run lakefront config get-active
 uv run lakefront config set-active --profile staging
 ```
 
-Secrets (S3 access keys etc.) are never written to the TOML profile — set them via environment variables instead:
+Secrets (S3 access keys etc.) can be written to the TOML profile or
+set via environment variables instead:
 
 ```bash
 export LAKEFRONT_S3__ACCESS_KEY=...
@@ -99,7 +100,7 @@ uv run lakefront projects source remove -p my-project -n raw
 ## Project Structure
 
 ```
-pkg/
+src/
 ├── core/   # config models, settings, project & source service
 ├── cli/    # Typer entrypoint and sub-commands
 └── tui/    # Textual TUI app (in progress)
