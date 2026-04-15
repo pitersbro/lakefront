@@ -1,10 +1,7 @@
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
-
-from .exceptions import SourceNotFoundError
+from pydantic import BaseModel, Field
 
 SourceKind = Literal["local", "s3"]
 
@@ -29,14 +26,6 @@ class DataSource(BaseModel):
     kind: SourceKind
     path: str  # local path or s3://bucket/prefix
     description: str = ""
-
-    @model_validator(mode="after")
-    def source_path(self):
-        if self.kind == "local":
-            path = Path(self.path)
-            if not path.exists():
-                raise SourceNotFoundError(f"Source path does not exist: {self.path}")
-        return self
 
 
 class Project(BaseModel):

@@ -5,8 +5,6 @@ from dotenv import load_dotenv
 
 HERE = Path(__file__).parent
 
-print("main conftest")
-
 
 def pytest_addoption(parser):
     parser.addoption("--env-file", default="test.env")

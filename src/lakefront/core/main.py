@@ -10,6 +10,7 @@ import pyarrow as pa
 
 from .config import ProjectConfigurationService, Settings, load_settings
 from .exceptions import SourceNotFoundError, SourceTypeInvalidError
+from .log import logger
 from .models import DataSource, Project
 
 SourceType = Literal["parquet", "dataset", "csv"]
@@ -47,6 +48,9 @@ class Source:
     def __str__(self):
         return f"{self.source.name} ({self.source.kind})"
 
+    def __repr__(self):
+        return f"Source(name={self.name}, type={self.type}, path='{self.path}')"
+
 
 @dataclass
 class QueryResult:
@@ -67,6 +71,12 @@ class QueryResult:
 class QueryEngineMixin:
     settings: Settings
     _con: duckdb.DuckDBPyConnection | None = None
+
+    _CREATE_VIEW_TAMPLATE = """
+        CREATE VIEW IF NOT EXISTS {name} 
+        AS SELECT * FROM {reader}('{path}')
+        """
+    _DROP_VIEW_TEMPLATE = "DROP VIEW IF EXISTS {name}"
 
     def get_connection(self):
         if hasattr(self, "_con") and self._con is not None:
@@ -89,17 +99,19 @@ class QueryEngineMixin:
         conn = self.get_connection()
         name = source.source.name
         path = source.path.as_posix()
+        reader = "read_parquet"
         if source.type == "csv":
-            sql = f"""CREATE VIEW IF NOT EXISTS {name} AS SELECT * FROM read_csv_auto('{path}')"""
+            reader = "read_csv_auto"
         elif source.type == "dataset":
-            sql = f"""CREATE VIEW IF NOT EXISTS {name} AS SELECT * FROM read_parquet('{path}/**/*.parquet')"""
-        else:
-            sql = f"""CREATE VIEW IF NOT EXISTS {name} AS SELECT * FROM read_parquet('{path}')"""
+            path = f"{path}/**/*.parquet"
+        sql = self._CREATE_VIEW_TAMPLATE.format(
+            name=name, reader=reader, path=path
+        ).strip()
         conn.execute(sql)
 
     def deregister_source(self, name: str):
         conn = self.get_connection()
-        sql = f"DROP VIEW IF EXISTS {name}"
+        sql = self._DROP_VIEW_TEMPLATE.format(name=name).strip()
         conn.execute(sql)
 
     def query(self, sql: str) -> QueryResult:
@@ -131,7 +143,18 @@ class ProjectContext(QueryEngineMixin):
 
     def __post_init__(self):
         self.settings = load_settings(profile=self.profile)
-        self.sources = [Source(self, src) for src in self._sources]
+        self.sources = []
+        for src in self._sources:
+            try:
+                source = Source(self, src)
+                if not source.path.exists():
+                    raise SourceNotFoundError(
+                        f"Source path does not exist: {source.path}"
+                    )
+                self.sources.append(source)
+            except (SourceNotFoundError, SourceTypeInvalidError) as e:
+                logger.error(f"Skipping source '{src.name}' due to error: {e}")
+
         for source in self.sources:
             self.register_source(source)
 

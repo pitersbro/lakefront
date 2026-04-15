@@ -1,17 +1,11 @@
 import pytest
 
-from lakefront.core import (
-    DataSource,
-    Project,
-    SourceNotFoundError,
-)
+from lakefront import core
 
 
 @pytest.fixture(scope="module")
 def ctx():
-    from lakefront.core import get_project
-
-    proj = get_project("test-project")
+    proj = core.get_project("test-project")
     yield proj
 
 
@@ -43,34 +37,37 @@ def test_context_sources_can_be_grouped_by_type(ctx):
     assert len(groups["parquet"]) == 1
 
 
-def test_context_source_not_found_error():
-    with pytest.raises(SourceNotFoundError):
-        Project(
-            name="bad-project",
-            profile="default",
-            sources=[
-                DataSource(name="weird_source", kind="local", path="/path/to/data")
-            ],
-        )
+def test_context_source_not_found_ignored():
+    model = core.Project(
+        name="bad-project",
+        profile="default",
+        sources=[
+            core.DataSource(name="weird_source", kind="local", path="/path/to/data")
+        ],
+    )
+    ctx = core.ProjectContext.from_model(model)
+    assert len(ctx.sources) == 0
 
 
-def test_context_source_type_invalid_error():
+def test_context_source_invalid_type_raises_validation_error():
     from pydantic import ValidationError
 
     with pytest.raises(ValidationError):
-        Project(
+        core.Project(
             name="bad-project",
             profile="default",
             sources=[
-                DataSource(name="bad_source", kind="unknown_kind", path="/path/to/data")
+                core.DataSource(
+                    name="bad_source", kind="unknown_kind", path="/path/to/data"
+                )
             ],
         )
 
 
-def test_context_source_attach_invalid(ctx):
+def test_context_source_attach_invalid_ignored(ctx):
     src = "nonexisting.csv"
-    with pytest.raises(SourceNotFoundError):
-        ctx.source_attach("myfile", kind="local", path=src)
+    ctx.source_attach("myfile", kind="local", path=src)
+    assert len(ctx.sources) == 3
 
 
 def test_context_attach_detach_source_cycle(tmp_path, ctx):

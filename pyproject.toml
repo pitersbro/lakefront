@@ -12,6 +12,7 @@ dependencies = [
     "tomli-w>=1.2.0",
     "textual<=9.0.0",
     "typer>=0.24,<1.0.0",
+    "loguru>=0.7.3",
 ]
 
 [dependency-groups]
@@ -51,7 +52,7 @@ select = ["I", "TID"]
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = false
-known-first-party = ["lop"]
+known-first-party = ["lakefront"]
 combine-as-imports = true
 
 [tool.ruff.lint.flake8-tidy-imports]
