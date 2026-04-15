@@ -19,7 +19,7 @@ jobs:
         run: uv run ruff check .
 
       - name: Deptry
-        run: uv run deptry pkg/core/src pkg/cli/src pkg/tui/src
+        run: uv run deptry src/
 
   test:
     runs-on: ubuntu-latest
@@ -31,10 +31,10 @@ jobs:
       - uses: astral-sh/setup-uv@v5
 
       - name: Install workspace
-        run: uv sync --all-packages
+        run: uv sync --all-groups
 
       - name: Run tests — ${{ matrix.package }}
-        run: uv run pytest pkg/${{ matrix.package }}/tests
+        run: uv run pytest tests/${{ matrix.package }}
 
   release:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -51,7 +51,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
 
       - name: Install dev deps
-        run: uv sync --all-packages
+        run: uv sync --all-groups
 
       - name: Bump patch version
         id: bump
