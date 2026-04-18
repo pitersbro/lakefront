@@ -10,6 +10,7 @@ from lakefront import models, util
 
 from .config import ProjectConfigurationService, Settings, load_settings
 from .exceptions import SourceNotFoundError
+from .log import logger
 
 
 @dataclass
@@ -52,18 +53,44 @@ class QueryEngineMixin:
         """
     _DROP_VIEW_TEMPLATE = "DROP VIEW IF EXISTS {name}"
 
-    def get_connection(self):
-        if hasattr(self, "_con") and self._con is not None:
-            return self._con
+    def configure_s3(self):
+        con = self.get_connection()
+        logger.debug("Configuring S3 access for DuckDB...")
+        try:
+            con.execute("LOAD httpfs;")
+        except duckdb.IOException:
+            try:
+                con.execute("INSTALL httpfs; LOAD httpfs;")
+            except duckdb.IOException as e:
+                raise RuntimeError(
+                    "Failed to load httpfs extension. "
+                    "Run `python -m lakefront install` to pre-install dependencies."
+                ) from e
 
-        settings = self.settings
+        ssl = "true" if self.settings.s3.endpoint_ssl else "false"
+
+        con.execute(
+            f"""
+            SET s3_access_key_id='{self.settings.s3.access_key}';
+            SET s3_secret_access_key='{self.settings.s3.secret_key}';
+            SET s3_endpoint='{self.settings.s3.endpoint_host}';
+            SET s3_region='{self.settings.s3.region}';
+            SET s3_use_ssl           = {ssl};
+            SET s3_url_style         = 'path';
+            """
+        )
+        logger.debug("S3 configuration complete.")
+
+    def get_connection(self):
+        if self._con is not None:
+            return self._con
 
         conn = duckdb.connect(
             database=":memory:",
             read_only=False,
             config={
-                "threads": settings.duckdb.threads,
-                "memory_limit": settings.duckdb.memory_limit,
+                "threads": self.settings.duckdb.threads,
+                "memory_limit": self.settings.duckdb.memory_limit,
             },
         )
         self._con = conn
@@ -71,6 +98,9 @@ class QueryEngineMixin:
 
     def register_source(self, source: Source):
         conn = self.get_connection()
+        logger.debug(
+            f'Registering source "{source.name}" with path: {source.info.path}'
+        )
         name = source.name
         reader = "read_parquet"
         path = source.info.path
@@ -110,7 +140,9 @@ class ProjectContext(QueryEngineMixin):
     def __post_init__(self):
         self.settings = load_settings(profile=self.profile)
         self.sources = []
+        self.configure_s3()
         for src in self._sources:
+            logger.debug(f'Loading source "{src.name}" from path: {src.path}')
             source = Source(self, src)
             if source.info.exists():
                 self.sources.append(source)

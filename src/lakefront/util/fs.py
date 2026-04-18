@@ -33,11 +33,12 @@ def resolve_filesystem(path: str, profile: str) -> fs.FileSystem:
         kwargs = {
             "access_key": settings.s3.access_key,
             "secret_key": settings.s3.secret_key,
-            "endpoint_override": settings.s3.endpoint,
+            "endpoint_override": settings.s3.endpoint_host,
             "region": settings.s3.region,
             "allow_bucket_creation": True,
             "allow_bucket_deletion": False,
             "retry_strategy": fs.AwsStandardS3RetryStrategy(max_attempts=10),
+            "scheme": settings.s3.url_scheme,
         }
         return fs.S3FileSystem(**kwargs)
     else:
@@ -51,7 +52,11 @@ class PathInfo:
     def __init__(self, path: str, profile: str):
         self.path = path
         self.fs = resolve_filesystem(path, profile)
-        if isinstance(self.fs, fs.S3FileSystem):
+        self._is_s3 = False
+        if self.path.startswith(S3_PREFIX):
+            self._is_s3 = True
+            # For S3 paths, we want to remove the "s3://"
+            # prefix for filesystem operations
             self.path = path[len(S3_PREFIX) :]
 
     @lru_cache(maxsize=128)
@@ -62,7 +67,7 @@ class PathInfo:
         return self.path.startswith(S3_PREFIX) == False
 
     def is_s3(self) -> bool:
-        return self.path.startswith(S3_PREFIX)
+        return self._is_s3
 
     def kind(self) -> PathKind:
         if self.path.startswith(S3_PREFIX):

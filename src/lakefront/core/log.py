@@ -14,7 +14,7 @@ config = {
     "handlers": [
         {
             "sink": sys.stderr,
-            "level": "INFO",
+            "level": "DEBUG",
             "colorize": True,
             "format": ("<level>{level: <8}</level> | {message}"),
         },
