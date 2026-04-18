@@ -1,55 +1,29 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Literal
 
 import duckdb
 import pandas as pd
 import pyarrow as pa
 
-from .config import ProjectConfigurationService, Settings, load_settings
-from .exceptions import SourceNotFoundError, SourceTypeInvalidError
-from .log import logger
-from .models import DataSource, Project
+from lakefront import models, util
 
-SourceType = Literal["parquet", "dataset", "csv"]
+from .config import ProjectConfigurationService, Settings, load_settings
+from .exceptions import SourceNotFoundError
 
 
 @dataclass
 class Source:
     ctx: ProjectContext
-    source: DataSource
-    path: Path = field(init=False)
-    type: SourceType = field(init=False)
+    source: models.DataSource
+    info: util.PathInfo = field(init=False)
+
+    def __post_init__(self):
+        self.info = util.PathInfo(self.source.path, self.ctx.profile)
 
     @property
     def name(self) -> str:
         return self.source.name
-
-    def __post_init__(self):
-        self.path = Path(self.source.path)
-        self._resolve_type()
-
-    def _resolve_type(self):
-        if self.path.is_file() and self.path.suffix == ".parquet":
-            self.type = "parquet"
-            return
-        elif self.path.is_dir() and any(
-            p.suffix == ".parquet" for p in self.path.rglob("*.parquet")
-        ):
-            self.type = "dataset"
-            return
-        elif self.path.is_file() and self.path.suffix == ".csv":
-            self.type = "csv"
-            return
-        raise SourceTypeInvalidError(f"Unsupported source type for path: {self.path}")
-
-    def __str__(self):
-        return f"{self.source.name} ({self.source.kind})"
-
-    def __repr__(self):
-        return f"Source(name={self.name}, type={self.type}, path='{self.path}')"
 
 
 @dataclass
@@ -97,13 +71,15 @@ class QueryEngineMixin:
 
     def register_source(self, source: Source):
         conn = self.get_connection()
-        name = source.source.name
-        path = source.path.as_posix()
+        name = source.name
         reader = "read_parquet"
-        if source.type == "csv":
+        path = source.info.path
+        if source.info.is_csv():
             reader = "read_csv_auto"
-        elif source.type == "dataset":
-            path = f"{path}/**/*.parquet"
+        elif source.info.is_dataset():
+            path = f"{source.info.path}/**/*.parquet"
+        if source.info.is_s3():
+            path = f"s3://{path}"
         sql = self._CREATE_VIEW_TAMPLATE.format(
             name=name, reader=reader, path=path
         ).strip()
@@ -122,21 +98,11 @@ class QueryEngineMixin:
 @dataclass
 class ProjectContext(QueryEngineMixin):
     """In-memory representation of a project configuration,
-    with additional methods for querying and profiling.
-
-
-    Examples:
-        ctx = ProjectContext.from_model(project_model)
-        print(ctx.list_source_names())
-        result = ctx.query("SELECT * FROM my_source LIMIT 10").fetchdf()
-        ctx.describe_source("my_source")
-        ctx.group_sources_by_type()
-
-    """
+    with additional methods for querying and profiling."""
 
     name: str
     profile: str
-    _sources: list[DataSource]
+    _sources: list[models.DataSource]
     sources: list[Source] = field(init=False)
 
     settings: Settings = field(init=False)
@@ -145,21 +111,15 @@ class ProjectContext(QueryEngineMixin):
         self.settings = load_settings(profile=self.profile)
         self.sources = []
         for src in self._sources:
-            try:
-                source = Source(self, src)
-                if not source.path.exists():
-                    raise SourceNotFoundError(
-                        f"Source path does not exist: {source.path}"
-                    )
+            source = Source(self, src)
+            if source.info.exists():
                 self.sources.append(source)
-            except (SourceNotFoundError, SourceTypeInvalidError) as e:
-                logger.error(f"Skipping source '{src.name}' due to error: {e}")
 
         for source in self.sources:
             self.register_source(source)
 
     @classmethod
-    def from_model(cls, project: Project) -> ProjectContext:
+    def from_model(cls, project: models.Project) -> ProjectContext:
         return cls(
             name=project.name,
             profile=project.profile,
@@ -167,9 +127,9 @@ class ProjectContext(QueryEngineMixin):
         )
 
     def sources_by_type(self) -> dict[str, list[str]]:
-        groups: dict[SourceType, list[str]] = {}
+        groups: dict[str, list[str]] = {}
         for src in self.sources:
-            groups.setdefault(src.type, []).append(src.name)
+            groups.setdefault(src.info.get_type().value, []).append(src.name)
         sorted_groups = {
             k: sorted(v) for k, v in sorted(groups.items(), key=lambda x: x[0])
         }
@@ -202,7 +162,7 @@ class ProjectContext(QueryEngineMixin):
         if any(s.name == name for s in self.sources):
             raise ValueError(f'Source with name "{name}" already exists.')
 
-        new_source = DataSource(name=name, kind=kind, path=path)
+        new_source = models.DataSource(name=name, path=path)
         ProjectConfigurationService.add_source(self.name, new_source)
         return self.reinitialize()
 

@@ -2,7 +2,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from lakefront import core
+from lakefront import core, models
 
 svc = core.ProjectConfigurationService
 
@@ -86,7 +86,7 @@ def add_source(
     description: str = typer.Option("", "--description", "-d"),
 ):
     try:
-        source = core.DataSource(
+        source = models.DataSource(
             name=name, kind=kind, path=path, description=description
         )
         svc.add_source(project, source)
@@ -107,3 +107,12 @@ def remove_source(
     except (core.ProjectNotFoundError, core.SourceNotFoundError) as e:
         console.print(f"[bold red]{e}[/]")
         raise typer.Exit(1)
+
+
+@source_cli.command(name="sync")
+def sync_sources(
+    project: str = typer.Option(..., "--project", "-p"),
+    paths: list[str] = typer.Argument(..., help="Source paths to sync"),
+):
+    print(project)
+    print(paths)

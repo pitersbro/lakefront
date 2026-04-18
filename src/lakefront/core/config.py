@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache
 from pathlib import Path
 
 import tomli_w
@@ -8,13 +9,14 @@ from pydantic_settings import (
     BaseSettings,
 )
 
+from lakefront import models, util
+
 from .exceptions import (
     ProjectExistsError,
     ProjectNotFoundError,
     SourceExistsError,
     SourceNotFoundError,
 )
-from .models import DataSource, DuckDBConfig, Project, S3Config, utcnow
 
 
 def get_env_var(name: str, default: str | None = None) -> Path:
@@ -53,8 +55,8 @@ def get_project_path(profile: str) -> Path:
 
 
 class Settings(BaseSettings):
-    duckdb: DuckDBConfig = DuckDBConfig()
-    s3: S3Config = S3Config()
+    duckdb: models.DuckDBConfig = models.DuckDBConfig()
+    s3: models.S3Config = models.S3Config()
     path: Path | None = Field(default=None, exclude=True)
 
     model_config = {
@@ -77,7 +79,7 @@ def _build_template() -> str:
     """Generate toml template from Settings model defaults."""
     lines = []
 
-    for section, model in [("duckdb", DuckDBConfig), ("s3", S3Config)]:
+    for section, model in [("duckdb", models.DuckDBConfig), ("s3", models.S3Config)]:
         lines.append(f"[{section}]")
         for name, field in model.model_fields.items():
             extra = field.json_schema_extra or {}
@@ -97,6 +99,7 @@ def _build_template() -> str:
 PROFILE_TEMPLATE = _build_template()
 
 
+@lru_cache(maxsize=None)
 def load_settings(profile: str | None = None) -> Settings:
     profile = profile or get_active_profile()
     config_file = CONFIG_DIR / f"{profile}.toml"
@@ -185,7 +188,7 @@ class ProjectConfigurationService:
     @classmethod
     def create(
         cls, name: str, description: str = "", profile: str = "default"
-    ) -> Project:
+    ) -> models.Project:
         project_dir = PROJECTS_DIR / name
         if project_dir.exists():
             raise ProjectExistsError(f"Project '{name}' already exists.")
@@ -194,19 +197,19 @@ class ProjectConfigurationService:
         # TODO: Think about it
         # (project_dir / "results").mkdir()
 
-        project = Project(name=name, description=description, profile=profile)
+        project = models.Project(name=name, description=description, profile=profile)
         cls._save(project)
         return project
 
     @classmethod
-    def get(cls, name: str) -> Project:
+    def get(cls, name: str) -> models.Project:
         path = cls._path(name)
         if not path.exists():
             raise ProjectNotFoundError(f"Project '{name}' not found.")
         import tomllib
 
         with path.open("rb") as f:
-            return Project(**tomllib.load(f))
+            return models.Project(**tomllib.load(f))
 
     @classmethod
     def list_projects(cls) -> list[str]:
@@ -229,7 +232,7 @@ class ProjectConfigurationService:
         shutil.rmtree(project_dir)
 
     @classmethod
-    def add_source(cls, name: str, source: DataSource) -> Project:
+    def add_source(cls, name: str, source: models.DataSource) -> models.Project:
         project = cls.get(name)
         if any(s.name == source.name for s in project.sources):
             raise SourceExistsError(
@@ -237,22 +240,22 @@ class ProjectConfigurationService:
             )
 
         project.sources.append(source)
-        project.updated_at = utcnow()
+        project.updated_at = util.utcnow()
         cls._save(project)
         return project
 
     @classmethod
-    def remove_source(cls, name: str, source_name: str) -> Project:
+    def remove_source(cls, name: str, source_name: str) -> models.Project:
         project = cls.get(name)
         if not any(s.name == source_name for s in project.sources):
             raise SourceNotFoundError(f"Source '{source_name}' not found in '{name}'.")
         project.sources = [s for s in project.sources if s.name != source_name]
-        project.updated_at = utcnow()
+        project.updated_at = util.utcnow()
         cls._save(project)
         return project
 
     @classmethod
-    def _save(cls, project: Project) -> None:
+    def _save(cls, project: models.Project) -> None:
         path = cls._path(project.name)
         with path.open("wb") as f:
             tomli_w.dump(project.model_dump(), f)

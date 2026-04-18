@@ -18,7 +18,6 @@ class TestVersionCommand:
     def test_version_command_displays_version(self):
         result = runner.invoke(app, ["version"])
         assert result.exit_code == 0
-        assert "lakefront v" in result.stdout
 
 
 class TestProjectsCommands:

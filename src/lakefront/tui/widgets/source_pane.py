@@ -7,7 +7,10 @@ from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Static
 
-from lakefront.core import ProjectContext
+from lakefront import core
+from lakefront.tui.modals.source_attach import SourceAttachModal
+
+svc = core.ProjectConfigurationService
 
 
 class FocusableStatic(Static):
@@ -50,7 +53,7 @@ class SourceItem(Widget):
     }
     """
 
-    def __init__(self, name: str, ctx: ProjectContext, **kwargs):
+    def __init__(self, name: str, ctx: core.ProjectContext, **kwargs):
         super().__init__(**kwargs)
         self.source_name = name
         self.ctx = ctx
@@ -142,7 +145,7 @@ class SourcePane(Widget):
     }
     """
 
-    def __init__(self, ctx: ProjectContext, **kwargs):
+    def __init__(self, ctx: core.ProjectContext, **kwargs):
         super().__init__(**kwargs)
         self.ctx = ctx
 
@@ -223,7 +226,24 @@ class SourcePane(Widget):
             self.action_focus_prev_source()
 
     def action_attach(self) -> None:
-        self.notify("attach: not yet implemented")
+        self.app.push_screen(SourceAttachModal(self.ctx), self.modal_callback)
+
+    def modal_callback(self, result: dict | None) -> None:
+        if result is None:
+            self.notify("Cancelled", severity="warning")
+        else:
+            name, path = result["name"], result["path"]
+            self.notify(
+                f"✅ Received:\n"
+                f"Name: [bold]{result['name']}[/bold]\n"
+                f"Path: [bold]{result['path']}[/bold]",
+                severity="information",
+                timeout=8,
+            )
+            self.ctx.source_attach(name=name, path=path, kind="local")
+            self.ctx = self.ctx.reinitialize()  # ← reload context to include new source
+
+        self.refresh(layout=True)  # ← trigger re-render to show new source
 
     def action_detach(self) -> None:
         self.notify("detach: not yet implemented")

@@ -1,4 +1,9 @@
-from .config import ProfileConfigurationService, ProjectConfigurationService, initialize
+from .config import (
+    ProfileConfigurationService,
+    ProjectConfigurationService,
+    initialize,
+    load_settings,
+)
 from .exceptions import (
     ProjectExistsError,
     ProjectNotFoundError,
@@ -8,7 +13,6 @@ from .exceptions import (
 )
 from .log import logger
 from .main import ProjectContext
-from .models import DataSource, Project
 
 
 def get_version() -> str:
@@ -31,6 +35,7 @@ __all__ = [
     "ProjectConfigurationService",
     "ProjectContext",
     "get_project",
+    "load_settings",
     "list_projects",
     "logger",
     "get_version",
@@ -40,6 +45,4 @@ __all__ = [
     "SourceExistsError",
     "SourceNotFoundError",
     "SourceTypeInvalidError",
-    "DataSource",
-    "Project",
 ]

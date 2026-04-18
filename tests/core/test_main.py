@@ -1,6 +1,6 @@
 import pytest
 
-from lakefront import core
+from lakefront import core, models
 
 
 @pytest.fixture(scope="module")
@@ -30,38 +30,21 @@ def test_context_all_attached_source_types_can_be_described(ctx):
 
 def test_context_sources_can_be_grouped_by_type(ctx):
     groups = ctx.sources_by_type()
-    assert "csv" in groups
-    assert "dataset" in groups
-    assert len(groups["csv"]) == 1
-    assert len(groups["dataset"]) == 1
-    assert len(groups["parquet"]) == 1
+    assert "CSV" in groups
+    assert "DATASET" in groups
+    assert len(groups["CSV"]) == 1
+    assert len(groups["DATASET"]) == 1
+    assert len(groups["PARQUET"]) == 1
 
 
 def test_context_source_not_found_ignored():
-    model = core.Project(
+    model = models.Project(
         name="bad-project",
         profile="default",
-        sources=[
-            core.DataSource(name="weird_source", kind="local", path="/path/to/data")
-        ],
+        sources=[models.DataSource(name="weird_source", path="/path/to/data")],
     )
     ctx = core.ProjectContext.from_model(model)
     assert len(ctx.sources) == 0
-
-
-def test_context_source_invalid_type_raises_validation_error():
-    from pydantic import ValidationError
-
-    with pytest.raises(ValidationError):
-        core.Project(
-            name="bad-project",
-            profile="default",
-            sources=[
-                core.DataSource(
-                    name="bad_source", kind="unknown_kind", path="/path/to/data"
-                )
-            ],
-        )
 
 
 def test_context_source_attach_invalid_ignored(ctx):

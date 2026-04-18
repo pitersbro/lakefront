@@ -35,7 +35,7 @@ def init():
 
 @app.command()
 def version():
-    console.print(f"[white]lakefront v{core.get_version()} [/]")
+    console.print(f"[white]{core.get_version()}[/]")
 
 
 @app.command()
