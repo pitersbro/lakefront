@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.widget import Widget
@@ -64,26 +65,28 @@ class ResultsPane(Widget):
     def action_export(self) -> None:
         self.notify("export CSV: not yet implemented")
 
-    def run_query(self, sql: str) -> None:
-        """Execute the query and display results."""
-        try:
-            df = self.ctx.query(sql).df()  # or however you run queries
-
-            # Clear previous results
-            self.table.clear()
+    def _update_table(self, sql: str, df) -> None:
+        """Helper to update the DataTable with new results."""
+        if not df.empty:
+            self.table.add_columns(*df.columns)
+            self.table.add_rows(df.itertuples(index=False, name=None))
             self.query_one("#meta-bar", Static).update(
                 f"Executed: {sql[:50]}..." if len(sql) > 50 else f"Executed: {sql}"
             )
+            self.notify(f"Query returned {len(df)} rows", severity="information")
+        else:
+            self.query_one("#meta-bar", Static).update(
+                f"Executed: {sql[:50]}..." if len(sql) > 50 else f"Executed: {sql}"
+            )
+            self.notify("Query returned no rows", severity="information")
 
-            # Add columns
-            if not df.empty:
-                self.table.columns.clear()
-                self.table.add_columns(*df.columns)
-                self.table.add_rows(df.itertuples(index=False, name=None))
-                self.notify(f"Query returned {len(df)} rows", severity="information")
-            else:
-                self.notify("Query returned no rows", severity="information")
-
+    @work(thread=True)
+    def run_query(self, sql: str) -> None:
+        """Execute the query and display results."""
+        self.table.clear()
+        self.table.columns.clear()
+        try:
+            df = self.ctx.query(sql).df()
+            self.app.call_from_thread(self._update_table, sql, df)
         except Exception as e:
-            self.table.clear()
             self.notify(f"Error executing query:\n{str(e)}", severity="error")
