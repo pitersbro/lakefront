@@ -81,14 +81,11 @@ def delete_project(
 def add_source(
     project: str = typer.Option(..., "--project", "-p"),
     name: str = typer.Option(..., "--name", "-n"),
-    kind: str = typer.Option(..., "--kind", "-k", help="local or s3"),
     path: str = typer.Option(..., "--path"),
     description: str = typer.Option("", "--description", "-d"),
 ):
     try:
-        source = models.DataSource(
-            name=name, kind=kind, path=path, description=description
-        )
+        source = models.DataSource(name=name, path=path, description=description)
         svc.add_source(project, source)
         console.print(f"[bold green]Added source '{name}' to '{project}'.[/]")
     except (core.ProjectNotFoundError, core.SourceExistsError) as e:
