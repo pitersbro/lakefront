@@ -74,7 +74,7 @@ jobs:
           git add uv.lock
           git commit --amend --no-edit
           NEW=$(uv run cz version --project)
-          git tag -f "v$NEW"
+          git tag -f -a "v$NEW" -m "Release v$NEW"
           echo "old=$OLD" >> $GITHUB_OUTPUT
           echo "new=$NEW" >> $GITHUB_OUTPUT
 
