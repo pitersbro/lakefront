@@ -3,6 +3,8 @@ from functools import lru_cache
 
 import pyarrow.fs as fs
 
+from lakefront.log import logger
+
 
 class PathType(Enum):
     FILE = "FILE"
@@ -29,15 +31,17 @@ def resolve_filesystem(path: str, profile: str) -> fs.FileSystem:
     from lakefront.core import load_settings
 
     settings = load_settings(profile)
-    if path.startswith("s3://"):
+    if path.startswith(S3_PREFIX):
         kwargs = {
             "access_key": settings.s3.access_key,
             "secret_key": settings.s3.secret_key,
             "endpoint_override": settings.s3.endpoint_host,
+            "connect_timeout": 2,
+            "request_timeout": 3,
             "region": settings.s3.region,
             "allow_bucket_creation": True,
             "allow_bucket_deletion": False,
-            "retry_strategy": fs.AwsStandardS3RetryStrategy(max_attempts=10),
+            "retry_strategy": fs.AwsStandardS3RetryStrategy(max_attempts=3),
             "scheme": settings.s3.url_scheme,
         }
         return fs.S3FileSystem(**kwargs)
@@ -58,22 +62,24 @@ class PathInfo:
             # For S3 paths, we want to remove the "s3://"
             # prefix for filesystem operations
             self.path = path[len(S3_PREFIX) :]
+        self.path = self.fs.normalize_path(self.path)
 
     @lru_cache(maxsize=128)
     def exists(self) -> bool:
-        return self.fs.get_file_info(self.path).type != fs.FileType.NotFound
+        try:
+            return self.fs.get_file_info(self.path).type != fs.FileType.NotFound
+        except OSError as exc:
+            logger.error(f"Error checking existence of path '{self.path}': {exc}")
+            return False
 
     def is_local(self) -> bool:
-        return self.path.startswith(S3_PREFIX) == False
+        return not self._is_s3
 
     def is_s3(self) -> bool:
         return self._is_s3
 
     def kind(self) -> PathKind:
-        if self.path.startswith(S3_PREFIX):
-            return PathKind.S3
-        else:
-            return PathKind.LOCAL
+        return PathKind.S3 if self._is_s3 else PathKind.LOCAL
 
     @lru_cache(maxsize=128)
     def is_file(self) -> bool:
