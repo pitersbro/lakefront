@@ -1,3 +1,13 @@
+## v0.3.0 (2026-04-19)
+
+### Feat
+
+- add commitizen for automated changelog and versioning
+
+### Fix
+
+- cz command not found
+
 ## v0.2.5 (2026-04-19)
 
 ## v0.2.2 (2026-04-18)
