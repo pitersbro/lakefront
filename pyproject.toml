@@ -21,7 +21,20 @@ dev = [
     "ipython>=8.38.0",
     "pytest>=9.0.2",
     "ruff>=0.15.1",
+    "commitizen~=4.13",
 ]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.2.5"                        
+version_files = [
+    "pyproject.toml:^version",            
+]
+tag_format = "v$version"                 
+update_changelog_on_bump = true          
+changelog_file = "CHANGELOG.md"
+changelog_incremental = true             
+major_version_zero = true    
 
 [project.scripts]
 lakefront = "lakefront.cli:app"

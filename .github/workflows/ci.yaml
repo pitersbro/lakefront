@@ -53,26 +53,34 @@ jobs:
       - name: Install dev deps
         run: uv sync --all-groups
 
-      - name: Bump patch version
-        id: bump
-        run: |
-          OLD=$(uv version --short)
-          uv version --bump patch
-          NEW=$(uv version --short)
-          echo "old=$OLD" >> $GITHUB_OUTPUT
-          echo "new=$NEW" >> $GITHUB_OUTPUT
-
-      - name: Commit & tag
+      - name: Configure Git
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pyproject.toml
-          git commit -m "chore: bump version ${{ steps.bump.outputs.old }} → ${{ steps.bump.outputs.new }}"
-          git tag "v${{ steps.bump.outputs.new }}"
+
+      - name: Bump version & changelog
+        id: bump
+        run: |
+          OLD=$(uv run cz version --project)
+          uv run cz bump --yes || EXIT=$?
+          if [ "${EXIT:-0}" -eq 21 ]; then
+            echo "Nothing to bump, skipping release"
+            echo "new=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          NEW=$(uv run cz version --project)
+          echo "old=$OLD" >> $GITHUB_OUTPUT
+          echo "new=$NEW" >> $GITHUB_OUTPUT
+
+      - name: Push commit & tag
+        if: steps.bump.outputs.new != ''
+        run: |
           git push --follow-tags
 
       - name: Build
+        if: steps.bump.outputs.new != ''
         run: uv build
 
       - name: Publish to PyPI
+        if: steps.bump.outputs.new != ''
         run: uv publish dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
