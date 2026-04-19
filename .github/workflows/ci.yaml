@@ -68,6 +68,11 @@ jobs:
             echo "new=" >> $GITHUB_OUTPUT
             exit 0
           fi
+          # regenerate lock file 
+          # and fold it into cz's commit
+          uv lock
+          git add uv.lock
+          git commit --amend --no-edit
           NEW=$(uv run cz version --project)
           echo "old=$OLD" >> $GITHUB_OUTPUT
           echo "new=$NEW" >> $GITHUB_OUTPUT
@@ -75,11 +80,14 @@ jobs:
       - name: Push commit & tag
         if: steps.bump.outputs.new != ''
         run: |
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git push --follow-tags
 
       - name: Build
         if: steps.bump.outputs.new != ''
-        run: uv build
+        run: |
+          cat CHANGELOG.md >> README.md
+          uv build
 
       - name: Publish to PyPI
         if: steps.bump.outputs.new != ''
