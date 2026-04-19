@@ -11,7 +11,6 @@ from .exceptions import (
     SourceNotFoundError,
     SourceTypeInvalidError,
 )
-from .log import logger
 from .main import ProjectContext
 
 
@@ -37,7 +36,6 @@ __all__ = [
     "get_project",
     "load_settings",
     "list_projects",
-    "logger",
     "get_version",
     "initialize",
     "ProjectExistsError",

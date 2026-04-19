@@ -1,6 +1,10 @@
+import os
 import sys
 
 from loguru import logger
+
+LOG_LEVEL = os.getenv("LAKEFRONT_LOG_LEVEL", "DEBUG").upper()
+
 
 logger.level("TRACE", color="<blue>")
 logger.level("DEBUG", color="<cyan>")
@@ -14,7 +18,7 @@ config = {
     "handlers": [
         {
             "sink": sys.stderr,
-            "level": "DEBUG",
+            "level": LOG_LEVEL,
             "colorize": True,
             "format": ("<level>{level: <8}</level> | {message}"),
         },

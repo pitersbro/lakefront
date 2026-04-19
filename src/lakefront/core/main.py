@@ -7,10 +7,10 @@ import pandas as pd
 import pyarrow as pa
 
 from lakefront import models, util
+from lakefront.log import logger
 
 from .config import ProjectConfigurationService, Settings, load_settings
 from .exceptions import SourceNotFoundError
-from .log import logger
 
 
 @dataclass
