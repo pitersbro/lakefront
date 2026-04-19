@@ -1,3 +1,10 @@
+## v0.3.1 (2026-04-19)
+
+### Fix
+
+- workflow glitches
+- unable to parse pyproject.toml
+
 ## v0.3.0 (2026-04-19)
 
 ### Feat
