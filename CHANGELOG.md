@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.3 (2026-04-19)
+
+### Fix
+
+- push and commit automation
+- use annotated tag to ensure push with --follow-tags
+
 ## v0.3.2 (2026-04-19)
 
 ### Fix
