@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.2 (2026-04-19)
+
+### Fix
+
+- tag still not pushed
+
 ## v0.3.1 (2026-04-19)
 
 ### Fix
