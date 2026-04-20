@@ -8,6 +8,7 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from lakefront import core
+from lakefront.tui.modals.confirm import ConfirmModal
 from lakefront.tui.modals.source_attach import SourceAttachModal
 
 svc = core.ProjectConfigurationService
@@ -161,6 +162,7 @@ class SourcePane(Widget):
     #     items = self.query(SourceItem)
     #     if items:
     #         items.first().focus()
+
     def on_focus(self) -> None:
         """When pane gains focus, activate the first source if none is set."""
         if self.active_source is None:
@@ -170,16 +172,13 @@ class SourcePane(Widget):
                 first.focus()
                 self.active_source = first.source_name  # ← set active
 
-    # Optional: watch the reactive and do something when it changes
     def watch_active_source(self, new_source: str | None) -> None:
         """Called automatically whenever active_source changes."""
         if new_source:
             self.notify(f"Active source → {new_source}", timeout=1.5)
-            # You can also trigger other actions here, e.g. refresh right pane
         else:
             self.notify("No active source", timeout=1)
 
-    # ── Source navigation (h / l) ──
     def action_focus_next_source(self) -> None:
         items: list[SourceItem] = list(self.query(SourceItem))
         if not items:
@@ -192,7 +191,7 @@ class SourcePane(Widget):
         next_idx = (idx + 1) % len(items)
         item = items[next_idx]
         item.focus()
-        self.active_source = item.source_name  # ← update active
+        self.active_source = item.source_name
         self.scroll_to_widget(item, animate=False)
 
     def action_focus_prev_source(self) -> None:
@@ -207,10 +206,9 @@ class SourcePane(Widget):
         prev_idx = (idx - 1) % len(items)
         item = items[prev_idx]
         item.focus()
-        self.active_source = item.source_name  # ← update active
+        self.active_source = item.source_name
         self.scroll_to_widget(item, animate=False)
 
-    # ── Forward j/k to current SourceItem ──
     def action_forward_j(self) -> None:
         focused = self.app.focused
         if isinstance(focused, SourceItem):
@@ -233,6 +231,9 @@ class SourcePane(Widget):
             self.notify("Cancelled", severity="warning")
         else:
             name, path = result["name"], result["path"]
+            self.ctx.source_attach(name=name, path=path, kind="local")
+            self.ctx = self.ctx.reinitialize()  # ← reload context to include new source
+            self._rebuild_sources()
             self.notify(
                 f"✅ Received:\n"
                 f"Name: [bold]{result['name']}[/bold]\n"
@@ -240,13 +241,32 @@ class SourcePane(Widget):
                 severity="information",
                 timeout=8,
             )
-            self.ctx.source_attach(name=name, path=path, kind="local")
-            self.ctx = self.ctx.reinitialize()  # ← reload context to include new source
 
-        self.refresh(layout=True)  # ← trigger re-render to show new source
+    def _rebuild_sources(self) -> None:
+        scroll = self.query_one(VerticalScroll)
+        scroll.remove_children()
+        for typ, names in self.ctx.sources_by_type().items():
+            scroll.mount(Static(typ.upper(), classes="group-label"))
+            for n in names:
+                scroll.mount(SourceItem(n, self.ctx))
 
     def action_detach(self) -> None:
-        self.notify("detach: not yet implemented")
+        if self.active_source is None:
+            self.notify("No active source to detach", severity="warning")
+            return
+
+        name = self.active_source
+
+        def on_confirm(confirmed: bool) -> None:
+            if not confirmed:
+                return
+            self.ctx.source_detach(name=name)
+            self.ctx = self.ctx.reinitialize()
+            self.active_source = None
+            self._rebuild_sources()
+            self.notify(f"🗑️ Detached [bold]{name}[/bold]", timeout=4)
+
+        self.app.push_screen(ConfirmModal(f"Detach '{name}'?"), on_confirm)
 
     def action_explore(self) -> None:
         self.notify("explore: not yet implemented")
