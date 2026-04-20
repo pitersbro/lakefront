@@ -146,6 +146,10 @@ class ProjectContext(QueryEngineMixin):
             source = Source(self, src)
             if source.info.exists():
                 self.sources.append(source)
+            else:
+                logger.warning(
+                    f'Source "{src.name}" skipped: path does not exist or is inaccessible.'
+                )
 
         for source in self.sources:
             self.register_source(source)
