@@ -1,9 +1,9 @@
 from textual import on
-from textual.app import App, ComposeResult
+from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Center, Container, Vertical
+from textual.containers import Center, Container
 from textual.screen import ModalScreen
-from textual.widgets import Button, Footer, Header, Input, Label
+from textual.widgets import Button, Input, Label
 
 from lakefront import core
 
@@ -86,38 +86,3 @@ class SourceAttachModal(ModalScreen[dict | None]):
     def action_cancel(self) -> None:
         """Called when user presses C or Escape"""
         self.dismiss(None)
-
-
-# =====================================================================
-# Main App
-# =====================================================================
-# class MyApp(App):
-#     TITLE = "Name & Path Modal (Keyboard Only)"
-#     BINDINGS = [("m", "show_modal", "Show Modal")]
-#
-#     def compose(self) -> ComposeResult:
-#         yield Header()
-#         yield Footer()
-#         yield Label(
-#             "Press 'm' to open the modal\nUse [O]K or [C]ancel inside modal",
-#             classes="centered",
-#         )
-#
-#     def action_show_modal(self) -> None:
-#         self.push_screen(NamePathModal(), self.modal_callback)
-#
-#     def modal_callback(self, result: dict | None) -> None:
-#         if result is None:
-#             self.notify("Cancelled by user", severity="warning")
-#         else:
-#             self.notify(
-#                 f"✅ Success!\n"
-#                 f"Name : [bold]{result['name']}[/bold]\n"
-#                 f"Path : [bold]{result['path']}[/bold]",
-#                 severity="information",
-#                 timeout=10,
-#             )
-#
-#
-# if __name__ == "__main__":
-#     MyApp().run()
