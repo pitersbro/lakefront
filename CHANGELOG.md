@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.4 (2026-04-20)
+
+### Fix
+
+- **tui**: rebuild source list after attach and detach
+
 ## v0.3.3 (2026-04-19)
 
 ### Feat
