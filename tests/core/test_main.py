@@ -13,6 +13,7 @@ def test_context_is_created(ctx):
     assert ctx.name == "test-project"
     assert ctx.profile == "testing"
     assert len(ctx.sources) == 3
+    assert ctx.log_file.exists()
 
 
 def test_context_all_attached_source_types_can_be_queried_with_sql(ctx):

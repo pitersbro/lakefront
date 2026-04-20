@@ -42,10 +42,12 @@ def version():
 def ui(
     project: str = typer.Option(..., "--project", "-p", help="Project to open"),
 ):
+    from lakefront.log import configure_for_tui
     from lakefront.tui.app import LakefrontApp
 
     try:
         ctx = core.get_project(project)
+        configure_for_tui(ctx.log_file)
     except core.ProjectNotFoundError as e:
         console.print(f"[bold red]{e}[/]")
         raise typer.Exit(1)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import duckdb
 import pandas as pd
@@ -9,7 +10,7 @@ import pyarrow as pa
 from lakefront import models, util
 from lakefront.log import logger
 
-from .config import ProjectConfigurationService, Settings, load_settings
+from .config import PROJECTS_DIR, ProjectConfigurationService, Settings, load_settings
 from .exceptions import SourceNotFoundError
 
 
@@ -136,6 +137,7 @@ class ProjectContext(QueryEngineMixin):
     sources: list[Source] = field(init=False)
 
     settings: Settings = field(init=False)
+    log_file: Path = field(init=False)
 
     def __post_init__(self):
         self.settings = load_settings(profile=self.profile)
@@ -153,6 +155,14 @@ class ProjectContext(QueryEngineMixin):
 
         for source in self.sources:
             self.register_source(source)
+
+        self._ensure_log_file()
+
+    def _ensure_log_file(self):
+        self.home = PROJECTS_DIR / self.name
+        self.home.mkdir(parents=True, exist_ok=True)
+        self.log_file = self.home / "project.log"
+        self.log_file.touch(exist_ok=True)
 
     @classmethod
     def from_model(cls, project: models.Project) -> ProjectContext:
