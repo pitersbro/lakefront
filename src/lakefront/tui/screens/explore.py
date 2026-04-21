@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import json
-import os
 
 import httpx
-import pandas as pd
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -13,46 +11,6 @@ from textual.screen import Screen
 from textual.widgets import Footer, Header, Input, MarkdownViewer, Static
 
 from lakefront.core import ProjectContext
-
-
-def _build_profile(df: pd.DataFrame, name: str) -> dict:
-    """Compute a compact statistical profile of a DataFrame."""
-    profile: dict = {
-        "source": name,
-        "rows": len(df),
-        "columns": len(df.columns),
-        "schema": {},
-        "stats": {},
-        "sample": df.head(5).to_dict(orient="records"),
-    }
-
-    for col in df.columns:
-        dtype = str(df[col].dtype)
-        null_pct = round(df[col].isnull().mean() * 100, 1)
-        profile["schema"][col] = {"type": dtype, "null_pct": null_pct}
-
-        if pd.api.types.is_numeric_dtype(df[col]):
-            s = df[col].dropna()
-            profile["stats"][col] = {
-                "min": float(s.min()) if len(s) else None,
-                "max": float(s.max()) if len(s) else None,
-                "mean": round(float(s.mean()), 4) if len(s) else None,
-                "median": round(float(s.median()), 4) if len(s) else None,
-                "std": round(float(s.std()), 4) if len(s) else None,
-                "p25": round(float(s.quantile(0.25)), 4) if len(s) else None,
-                "p75": round(float(s.quantile(0.75)), 4) if len(s) else None,
-            }
-        elif pd.api.types.is_object_dtype(df[col]) or isinstance(
-            df[col].dtype, pd.CategoricalDtype
-        ):
-            vc = df[col].value_counts().head(5).to_dict()
-            profile["stats"][col] = {
-                "unique": int(df[col].nunique()),
-                "top_values": {str(k): int(v) for k, v in vc.items()},
-            }
-
-    return profile
-
 
 SYSTEM_PROMPT = """\
 You are a senior data analyst. You receive a statistical profile of a dataset
@@ -118,6 +76,7 @@ class ExploreScreen(Screen):
     def __init__(self, ctx: ProjectContext, source_name: str, **kwargs):
         super().__init__(**kwargs)
         self.ctx = ctx
+        self.analyzer = ctx.analyzer()
         self.source_name = source_name
         self._profile: dict | None = None
         self._insights_md = ""
@@ -154,12 +113,8 @@ class ExploreScreen(Screen):
     def _load_profile(self) -> None:
         """Sample the source and build a statistical profile."""
         try:
-            df: pd.DataFrame = self.ctx.query(
-                f"SELECT * FROM {self.source_name} LIMIT 50000"
-            ).df()
-            profile = _build_profile(df, self.source_name)
-            self._profile = profile
-            self.app.call_from_thread(self._render_stats, profile)
+            self._profile = self.analyzer.analyze_source(self.source_name)
+            self.app.call_from_thread(self._render_stats, self._profile)
             # Auto-generate initial insights
             self._ask_llm("Give me a concise overview and highlight anything notable.")
         except Exception as e:

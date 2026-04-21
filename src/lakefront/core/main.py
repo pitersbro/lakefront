@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from lakefront import models
 from lakefront.log import logger
 
+from .analyzer import Analyzer
 from .base import ContextBase, QueryResult, Source
 from .config import PROJECTS_DIR, ProjectConfigurationService, load_settings
 from .exceptions import SourceNotFoundError
@@ -31,6 +32,9 @@ class ProjectContext(QueryEngineMixin, ContextBase):
             self.register_source(source)
 
         self._ensure_log_file()
+
+    def analyzer(self) -> Analyzer:
+        return Analyzer(self)
 
     def _ensure_log_file(self):
         self.home = PROJECTS_DIR / self.name
