@@ -57,6 +57,7 @@ def get_project_path(profile: str) -> Path:
 class Settings(BaseSettings):
     duckdb: models.DuckDBConfig = models.DuckDBConfig()
     s3: models.S3Config = models.S3Config()
+    anthropic: models.AnthropicConfig = models.AnthropicConfig()
     path: Path | None = Field(default=None, exclude=True)
 
     model_config = {
@@ -79,7 +80,11 @@ def _build_template() -> str:
     """Generate toml template from Settings model defaults."""
     lines = []
 
-    for section, model in [("duckdb", models.DuckDBConfig), ("s3", models.S3Config)]:
+    for section, model in [
+        ("duckdb", models.DuckDBConfig),
+        ("s3", models.S3Config),
+        ("anthropic", models.AnthropicConfig),
+    ]:
         lines.append(f"[{section}]")
         for name, field in model.model_fields.items():
             extra = field.json_schema_extra or {}
@@ -89,7 +94,12 @@ def _build_template() -> str:
                 )
             else:
                 default = field.default
-                value = f'"{default}"' if isinstance(default, str) else default
+                if isinstance(default, bool):
+                    value = "true" if default else "false"
+                elif isinstance(default, str):
+                    value = f'"{default}"'
+                else:
+                    value = default
                 lines.append(f"{name} = {value}")
         lines.append("")
 
@@ -141,6 +151,14 @@ class ProfileConfigurationService:
             "CONFIG_DIR": str(CONFIG_DIR),
             "PROJECTS_DIR": str(PROJECTS_DIR),
         }
+
+    @classmethod
+    def delete_profile(cls, name: str) -> None:
+        """Delete a profile by name."""
+        profile_path = CONFIG_DIR / f"{name}.toml"
+        if not profile_path.exists():
+            raise FileNotFoundError(f"Profile '{name}' not found.")
+        profile_path.unlink()
 
     @classmethod
     def inspect_profile(cls, name: str | None) -> dict:
