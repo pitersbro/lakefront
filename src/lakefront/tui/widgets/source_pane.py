@@ -269,4 +269,9 @@ class SourcePane(Widget):
         self.app.push_screen(ConfirmModal(f"Detach '{name}'?"), on_confirm)
 
     def action_explore(self) -> None:
-        self.notify("explore: not yet implemented")
+        if self.active_source is None:
+            self.notify("Select a source first", severity="warning")
+            return
+        from lakefront.tui.screens.explore import ExploreScreen
+
+        self.app.push_screen(ExploreScreen(self.ctx, self.active_source))
