@@ -1,16 +1,19 @@
 from datetime import datetime
-from typing import Literal
 
 from pydantic import BaseModel, Field
 
 from lakefront import util
 
-SourceKind = Literal["local", "s3"]
-
 
 class DuckDBConfig(BaseModel):
     threads: int = 4
     memory_limit: str = "2GB"
+
+
+class AnthropicConfig(BaseModel):
+    url: str = "https://api.anthropic.com/v1"
+    api_key: str = Field(default="", json_schema_extra={"secret": True})
+    enabled: bool = Field(default=False, description="Whether to enable LLM features")
 
 
 class S3Config(BaseModel):
