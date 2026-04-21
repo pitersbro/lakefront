@@ -43,6 +43,25 @@ def create_profile(
         console.print(f"[bold red]{e}[/]")
 
 
+@config_cli.command(name="delete")
+def delete_profile(
+    profile: str = typer.Option(
+        ..., "--profile", "-p", help="The name of the profile to delete."
+    ),
+):
+    console.print(f"[bold green]Deleting profile '{profile}'...[/]")
+    try:
+        if profile in svc.list_profiles():
+            typer.confirm(
+                f"Are you sure you want to delete profile '{profile}'?", abort=True
+            )
+
+        svc.delete_profile(profile)
+        console.print(f"[bold green]Profile '{profile}' deleted.[/]")
+    except FileNotFoundError as e:
+        console.print(f"[bold red]{e}[/]")
+
+
 @config_cli.command()
 def inspect(
     profile: str = typer.Option(
