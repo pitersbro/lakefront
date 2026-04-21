@@ -38,10 +38,7 @@ def version():
     console.print(f"[white]{core.get_version()}[/]")
 
 
-@app.command()
-def ui(
-    project: str = typer.Option(..., "--project", "-p", help="Project to open"),
-):
+def run_app(project: str):
     from lakefront.log import configure_for_tui
     from lakefront.tui.app import LakefrontApp
 
@@ -53,3 +50,16 @@ def ui(
         raise typer.Exit(1)
 
     LakefrontApp(ctx).run()
+
+
+@app.command()
+def demo():
+    console.print("[bold green]Starting demo...[/]")
+    run_app("demo")
+
+
+@app.command()
+def ui(
+    project: str = typer.Option(..., "--project", "-p", help="Project to open"),
+):
+    run_app(project)
