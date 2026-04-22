@@ -3,12 +3,6 @@ import pytest
 from lakefront import core, models
 
 
-@pytest.fixture(scope="module")
-def ctx():
-    proj = core.get_project("test-project")
-    yield proj
-
-
 def test_context_is_created(ctx):
     assert ctx.name == "test-project"
     assert ctx.profile == "testing"
