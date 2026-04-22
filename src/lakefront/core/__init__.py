@@ -5,6 +5,7 @@ from .config import (
     load_settings,
 )
 from .exceptions import (
+    LlmError,
     ProjectExistsError,
     ProjectNotFoundError,
     SourceExistsError,
@@ -36,6 +37,7 @@ __all__ = [
     "get_project",
     "load_settings",
     "list_projects",
+    "LlmError",
     "get_version",
     "initialize",
     "ProjectExistsError",
