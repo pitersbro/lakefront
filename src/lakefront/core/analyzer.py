@@ -47,8 +47,14 @@ class Analyzer:
             dtype = str(df[col].dtype)
             null_pct = round(df[col].isnull().mean() * 100, 1)
             profile["schema"][col] = {"type": dtype, "null_pct": null_pct}
+            if pd.api.types.is_bool_dtype(df[col]):
+                vc = df[col].value_counts(dropna=False).to_dict()
+                profile["stats"][col] = {
+                    "unique": int(df[col].nunique()),
+                    "top_values": {str(k): int(v) for k, v in vc.items()},
+                }
 
-            if pd.api.types.is_numeric_dtype(df[col]):
+            elif pd.api.types.is_numeric_dtype(df[col]):
                 s = df[col].dropna()
                 profile["stats"][col] = {
                     "min": float(s.min()) if len(s) else None,
