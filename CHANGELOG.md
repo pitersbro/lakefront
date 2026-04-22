@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.4.0 (2026-04-22)
+
+### Feat
+
+- data profile is presented on source selection
+- enable ai powered data source exploration
+- **cli**: add configuration profile delete and demo commands
+- add anthropic section to configuration model
+
+### Fix
+
+- analyzer mishandles bool types
+- typo on app title
+
+### Refactor
+
+- move data profiling and llm code to analyzer module
+- move data profiling code from tui to core.analyzer
+- split core.main responsibilities across submodules
+- core
+
 ## v0.3.4 (2026-04-20)
 
 ### Fix
