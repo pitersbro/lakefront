@@ -158,11 +158,6 @@ class SourcePane(Widget):
                 for name in names:
                     yield SourceItem(name, self.ctx)
 
-    # def on_focus(self) -> None:
-    #     items = self.query(SourceItem)
-    #     if items:
-    #         items.first().focus()
-
     def on_focus(self) -> None:
         """When pane gains focus, activate the first source if none is set."""
         if self.active_source is None:
@@ -170,7 +165,7 @@ class SourcePane(Widget):
             if items:
                 first = items.first()
                 first.focus()
-                self.active_source = first.source_name  # ← set active
+                self.active_source = first.source_name
 
     def watch_active_source(self, new_source: str | None) -> None:
         """Called automatically whenever active_source changes."""
