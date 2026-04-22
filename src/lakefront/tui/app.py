@@ -6,7 +6,7 @@ from lakefront.tui.screens.project import ProjectScreen
 
 
 class LakefrontApp(App):
-    TITLE = "Lekefront"
+    TITLE = "Lakefront"
     SUB_TITLE = "Lakehouse Observability Platform"
     BINDINGS = [
         Binding("tab", "focus_next", show=False),
