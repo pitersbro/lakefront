@@ -63,13 +63,16 @@ class ExploreScreen(Screen):
     .stat-sep     { color: $panel;        padding: 0 1; height: 1; }
     """
 
-    def __init__(self, ctx: ProjectContext, source_name: str, **kwargs):
+    def __init__(
+        self, ctx: ProjectContext, source_name: str, sql: str | None = None, **kwargs
+    ):
         super().__init__(**kwargs)
         self.ctx = ctx
         self.analyzer = ctx.analyzer()
         self.source_name = source_name
         self._profile: dict | None = None
         self._insights_md = ""
+        self._sql = sql
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -103,7 +106,10 @@ class ExploreScreen(Screen):
     def _load_profile(self) -> None:
         """Sample the source and build a statistical profile."""
         try:
-            self._profile = self.analyzer.analyze_source(self.source_name)
+            if self._sql:
+                self._profile = self.analyzer.analyze_sql(self._sql)
+            else:
+                self._profile = self.analyzer.analyze_source(self.source_name)
             self.app.call_from_thread(self._render_stats, self._profile)
             # Auto-generate initial insights
             self._ask_llm("Give me a concise overview and highlight anything notable.")
