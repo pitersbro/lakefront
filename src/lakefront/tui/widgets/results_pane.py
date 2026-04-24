@@ -7,6 +7,7 @@ from textual.widget import Widget
 from textual.widgets import DataTable, Static
 
 from lakefront.core import ProjectContext
+from lakefront.tui.screens.explore import ExploreScreen
 
 
 class ResultsPane(Widget):
@@ -18,9 +19,12 @@ class ResultsPane(Widget):
         super().__init__(**kwargs)
         self.ctx = ctx
         self.table = DataTable(id="results-table", zebra_stripes=True)
+        self.table.cursor_type = "row"
+        self._sql = None
 
     BINDINGS = [
-        Binding("ctrl+e", "export", "Export CSV", show=True),
+        Binding("x", "export", "Export to file", show=True),
+        Binding("e", "explore", "Explore", show=True),
     ]
 
     DEFAULT_CSS = """
@@ -58,12 +62,8 @@ class ResultsPane(Widget):
         )
         yield self.table
 
-    # def on_mount(self) -> None:
-    #     table = self.query_one("#results-table", DataTable)
-    #     table.cursor_type = "row"
-
     def action_export(self) -> None:
-        self.notify("export CSV: not yet implemented")
+        self.notify("export not yet implemented")
 
     def _update_table(self, sql: str, df) -> None:
         """Helper to update the DataTable with new results."""
@@ -80,12 +80,20 @@ class ResultsPane(Widget):
             )
             self.notify("Query returned no rows", severity="information")
 
+    def action_explore(self) -> None:
+        if self._sql is None:
+            self.notify("No data to explore", severity="warning")
+            return
+
+        self.app.push_screen(ExploreScreen(self.ctx, "query", self._sql))
+
     @work(thread=True)
     def run_query(self, sql: str) -> None:
         """Execute the query and display results."""
         self.table.clear()
         self.table.columns.clear()
         try:
+            self._sql = sql
             df = self.ctx.query(sql).df()
             self.app.call_from_thread(self._update_table, sql, df)
         except Exception as e:
