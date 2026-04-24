@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.0 (2026-04-24)
+
+### Feat
+
+- **tui**: add explore action to result pane
+
 ## v0.4.0 (2026-04-22)
 
 ### Feat
