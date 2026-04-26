@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.0 (2026-04-26)
+
+### Feat
+
+- **tui**: support multiple tabs in editor and result panes
+
 ## v0.6.0 (2026-04-26)
 
 ### Feat
