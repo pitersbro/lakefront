@@ -7,6 +7,7 @@ from lakefront.tui.screens.project import ProjectScreen
 
 class LakefrontApp(App):
     TITLE = "Lakefront"
+    CSS_PATH = "app.tcss"
     BINDINGS = [
         Binding("tab", "focus_next", show=False),
         Binding("shift+tab", "focus_previous", show=False),

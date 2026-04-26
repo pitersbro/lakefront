@@ -21,40 +21,14 @@ class ResultsPane(Widget):
         self.table = DataTable(id="results-table", zebra_stripes=True)
         self.table.cursor_type = "row"
         self._sql = None
+        self.border_title = "Results"
 
     BINDINGS = [
         Binding("x", "export", "Export to file", show=True),
         Binding("e", "explore", "Explore", show=True),
     ]
 
-    DEFAULT_CSS = """
-    ResultsPane {
-        background: $surface;
-    }
-
-    ResultsPane > .pane-title {
-        background: $panel;
-        color: $text-muted;
-        padding: 0 1;
-        text-style: bold;
-        height: 1;
-    }
-
-    ResultsPane > .meta-bar {
-        background: $panel;
-        color: $text-muted;
-        padding: 0 1;
-        height: 1;
-    }
-
-    ResultsPane DataTable {
-        height: 1fr;
-        border: none;
-    }
-    """
-
     def compose(self) -> ComposeResult:
-        yield Static("RESULTS", classes="pane-title")
         yield Static(
             "no results yet — run a query with Ctrl+R",
             classes="meta-bar",

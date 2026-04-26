@@ -18,51 +18,6 @@ class ExploreScreen(Screen):
         Binding("ctrl+r", "ask", "Ask AI", show=True),
     ]
 
-    CSS = """
-    ExploreScreen { layout: vertical; }
-
-    #body {
-        layout: horizontal;
-        height: 1fr;
-    }
-
-    #stats-pane {
-        width: 40;
-        height: 100%;
-        border-right: tall $panel;
-        overflow-y: auto;
-    }
-
-    #right {
-        layout: vertical;
-        width: 1fr;
-        height: 100%;
-    }
-
-    #insights-scroll {
-        height: 1fr;
-        padding: 1 2;
-    }
-
-    #question-bar {
-        height: 3;
-        padding: 0 1;
-        border-top: tall $panel;
-    }
-
-    .pane-title {
-        background: $panel;
-        color: $text-muted;
-        padding: 0 1;
-        text-style: bold;
-        height: 1;
-    }
-
-    .stat-section { color: $text-disabled; padding: 0 1; height: 1; }
-    .stat-row     { color: $text;         padding: 0 2; height: 1; }
-    .stat-sep     { color: $panel;        padding: 0 1; height: 1; }
-    """
-
     def __init__(
         self, ctx: ProjectContext, source_name: str, sql: str | None = None, **kwargs
     ):
@@ -78,7 +33,6 @@ class ExploreScreen(Screen):
         yield Header()
         with Horizontal(id="body"):
             with VerticalScroll(id="stats-pane"):
-                yield Static("PROFILE", classes="pane-title")
                 yield Static("Loading…", id="stats-content")
             with Vertical(id="right"):
                 yield Static(
