@@ -32,28 +32,6 @@ class SourceItem(Widget):
         Binding("k", "focus_prev_row", "Prev row", show=False),
     ]
 
-    DEFAULT_CSS = """
-    SourceItem {
-        height: auto;
-    }
-    SourceItem .source-row {
-        padding: 0 1 0 2;
-        height: 1;
-        color: $text-muted;
-    }
-    SourceItem .column-row {
-        padding: 0 1 0 4;
-        height: 1;
-        color: $text-disabled;
-    }
-    SourceItem:focus .source-row,
-    SourceItem .source-row:focus,
-    SourceItem .column-row:focus {
-        background: $accent 20%;
-        color: $text;
-    }
-    """
-
     def __init__(self, name: str, ctx: core.ProjectContext, **kwargs):
         super().__init__(**kwargs)
         self.source_name = name

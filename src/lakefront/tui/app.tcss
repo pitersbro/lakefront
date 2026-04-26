@@ -54,6 +54,7 @@ SourcePane .group-label {
     color: $text-disabled;
     padding: 0 1;
     height: 1;
+    text-style: italic;
 }
 
 SourceItem {
@@ -87,6 +88,10 @@ EditorPane {
     height: 14;
 }
 
+EditorPane TabbedContent {
+        height: 1fr;
+    }
+
 EditorPane TextArea {
     height: 1fr;
     border: none;
@@ -111,6 +116,10 @@ ResultsPane .meta-bar {
 ResultsPane DataTable {
     height: 1fr;
     border: none;
+}
+
+ResultsPane TabbedContent {
+    height: 1fr;
 }
 
 
