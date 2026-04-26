@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.1 (2026-04-26)
+
+### Refactor
+
+- **tui**: consolidate styles in app.tcss
+
 ## v0.5.0 (2026-04-24)
 
 ### Feat
