@@ -210,4 +210,4 @@ __marimo__/
 scripts/
 DOCS/
 tests/core/runtime/
-
+.claude/
