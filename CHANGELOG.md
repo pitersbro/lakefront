@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.6.0 (2026-04-26)
+
+### Feat
+
+- **core**: read analyzer row limit setting
+- **tui**: read theme setting from core section
+- **core**: add core config section
+
 ## v0.5.1 (2026-04-26)
 
 ### Refactor
