@@ -19,7 +19,7 @@ class ProfilerPane(Widget):
     def __init__(self, ctx: ProjectContext, **kwargs):
         super().__init__(**kwargs)
         self.ctx = ctx
-        self.border_title = "Profile"
+        self.border_title = "Summary"
 
     def on_focus(self) -> None:
         self.query_one("#profiler-container", VerticalScroll).focus()

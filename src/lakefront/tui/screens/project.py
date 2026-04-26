@@ -38,6 +38,6 @@ class ProjectScreen(Screen):
         """Receive query from EditorPane and forward it to ResultsPane."""
         try:
             results_pane = self.query_one("#results-pane", ResultsPane)
-            results_pane.run_query(message.sql)
+            results_pane.run_query(message.sql, message.new_tab)
         except Exception as e:
             self.notify(f"Could not run query: {e}", severity="error")

@@ -97,11 +97,53 @@ uv run lakefront projects source remove -p my-project -n raw
 
 ---
 
-## Project Structure
+## TUI (Terminal User Interface)
 
-```
-src/
-├── core/   # config models, settings, project & source service
-├── cli/    # Typer entrypoint and sub-commands
-└── tui/    # Textual TUI app (in progress)
-```
+The interactive TUI provides a rich, multi-pane interface for exploring and analyzing data without leaving the terminal.
+
+![Project](docs/project-screen.svg)
+
+### Project Screen
+
+The main project workspace with a three-pane layout:
+
+**Left Pane — Data Sources:**
+
+- Browse all attached sources with expandable tree view
+- View column names and data types inline
+- Quickly navigate between sources
+
+**Center Pane — SQL Editor & Results:**
+
+- Tabbed SQL editor for writing and managing multiple queries
+- Syntax-highlighted editor with DuckDB SQL support
+- **Ctrl+R**: Execute query
+- **Ctrl+N**: Run query in a new results tab
+- **Ctrl+S**: Save script to disk
+- **Ctrl+T**: Create new editor tab
+- **Ctrl+W**: Close current tab
+- Results pane displays query output in scrollable tables
+
+**Right Pane — Profiler:**
+
+- Live query execution statistics
+- Row counts, memory usage, and timing information
+
+### Explore Screen
+
+Deep-dive analysis with statistical profiling and AI insights:
+
+- **Statistical Profile**: Automatic data profiling showing distribution, nulls, and cardinality
+- **AI-Powered Insights**: Ask questions about your dataset using LLM integration
+- **Interactive Q&A**: Type questions to get natural-language analysis and recommendations
+- **Keyboard Shortcuts**:
+  - **Ctrl+R** or Enter: Submit question to AI
+  - **Q**: Return to project screen
+
+### Navigation
+
+- **Tab / Shift+Tab**: Move focus between panes
+- Modal dialogs for source attachment and confirmations
+- Themed UI with multiple color schemes (configurable via profile settings)
+
+---
