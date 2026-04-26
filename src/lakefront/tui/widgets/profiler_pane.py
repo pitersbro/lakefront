@@ -19,70 +19,13 @@ class ProfilerPane(Widget):
     def __init__(self, ctx: ProjectContext, **kwargs):
         super().__init__(**kwargs)
         self.ctx = ctx
-
-    DEFAULT_CSS = """
-    ProfilerPane {
-        background: $surface;
-        padding: 0;
-    }
-
-    ProfilerPane > .pane-title {
-        background: $panel;
-        color: $text-muted;
-        padding: 0 1;
-        text-style: bold;
-        height: 1;
-    }
-
-    ProfilerPane .stat-label {
-        color: $text-disabled;
-        padding: 0 1;
-        height: 1;
-    }
-
-    ProfilerPane .stat-value {
-        color: $text;
-        padding: 0 2;
-        height: 1;
-        text-style: bold;
-    }
-
-    ProfilerPane .stat-sub {
-        color: $text-muted;
-        padding: 0 2;
-        height: 1;
-    }
-
-    ProfilerPane .divider {
-        color: $panel;
-        height: 1;
-        padding: 0 1;
-    }
-
-
-    #profiler-container {
-        width: 40;
-        height: 100%;
-        border-right: tall $panel;
-        overflow-y: auto;
-    }
-    .pane-title {
-        background: $panel;
-        color: $text-muted;
-        padding: 0 1;
-        text-style: bold;
-        height: 1;
-    }
-
-
-    """
+        self.border_title = "Profile"
 
     def on_focus(self) -> None:
         self.query_one("#profiler-container", VerticalScroll).focus()
 
     def compose(self) -> ComposeResult:
         with VerticalScroll(id="profiler-container", can_focus=True):
-            yield Static("PROFILE", classes="pane-title")
             yield Static("Loading…", id="profiler-content")
 
     def on_mount(self) -> None:

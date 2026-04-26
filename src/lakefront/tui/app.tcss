@@ -1,0 +1,227 @@
+/* ══════════════════════════════════════════════════════════════════
+   Lakefront — global stylesheet
+   ══════════════════════════════════════════════════════════════════ */
+
+
+/* ── ProjectScreen ───────────────────────────────────────────────── */
+
+ProjectScreen {
+    layout: vertical;
+}
+
+ProjectScreen #body {
+    layout: horizontal;
+    height: 1fr;
+}
+
+#center {
+    layout: vertical;
+    width: 1fr;
+    height: 100%;
+}
+
+
+/* ── Pane borders (shared style) ─────────────────────────────────── */
+
+SourcePane,
+EditorPane,
+ResultsPane,
+ProfilerPane {
+    border: round $panel;
+    border-title-color: $text-muted;
+    border-title-style: bold;
+    border-title-align: left;
+}
+
+SourcePane:focus-within,
+EditorPane:focus-within,
+ResultsPane:focus-within,
+ProfilerPane:focus-within {
+    border: round $accent 60%;
+    border-title-color: $accent;
+}
+
+
+/* ── SourcePane ──────────────────────────────────────────────────── */
+
+SourcePane {
+    background: $surface;
+    width: 28;
+    height: 100%;
+}
+
+SourcePane .group-label {
+    color: $text-disabled;
+    padding: 0 1;
+    height: 1;
+}
+
+SourceItem {
+    height: auto;
+}
+
+SourceItem .source-row {
+    padding: 0 1 0 2;
+    height: 1;
+    color: $text-muted;
+}
+
+SourceItem .column-row {
+    padding: 0 1 0 4;
+    height: 1;
+    color: $text-disabled;
+}
+
+SourceItem:focus .source-row,
+SourceItem .source-row:focus,
+SourceItem .column-row:focus {
+    background: $accent 20%;
+    color: $text;
+}
+
+
+/* ── EditorPane ──────────────────────────────────────────────────── */
+
+EditorPane {
+    background: $surface;
+    height: 14;
+}
+
+EditorPane TextArea {
+    height: 1fr;
+    border: none;
+    background: $surface;
+}
+
+
+/* ── ResultsPane ─────────────────────────────────────────────────── */
+
+ResultsPane {
+    background: $surface;
+    height: 1fr;
+}
+
+ResultsPane .meta-bar {
+    background: $panel;
+    color: $text-muted;
+    padding: 0 1;
+    height: 1;
+}
+
+ResultsPane DataTable {
+    height: 1fr;
+    border: none;
+}
+
+
+/* ── ProfilerPane ────────────────────────────────────────────────── */
+
+ProfilerPane {
+    background: $surface;
+    width: 42;
+    height: 100%;
+    padding: 0;
+}
+
+#profiler-container {
+    height: 100%;
+    overflow-y: auto;
+}
+
+ProfilerPane .stat-label {
+    color: $text-disabled;
+    padding: 0 1;
+    height: 1;
+}
+
+ProfilerPane .stat-value {
+    color: $text;
+    padding: 0 2;
+    height: 1;
+    text-style: bold;
+}
+
+ProfilerPane .stat-sub {
+    color: $text-muted;
+    padding: 0 2;
+    height: 1;
+}
+
+ProfilerPane .divider {
+    color: $panel;
+    height: 1;
+    padding: 0 1;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   ExploreScreen
+   ══════════════════════════════════════════════════════════════════ */
+
+ExploreScreen {
+    layout: vertical;
+}
+
+ExploreScreen #body {
+    layout: horizontal;
+    height: 1fr;
+}
+
+#stats-pane {
+    width: 42;
+    height: 100%;
+    overflow-y: auto;
+    border: round $panel;
+    border-title-color: $text-muted;
+    border-title-style: bold;
+    border-title-align: left;
+}
+
+#stats-pane:focus-within {
+    border: round $accent 60%;
+    border-title-color: $accent;
+}
+
+#right {
+    layout: vertical;
+    width: 1fr;
+    height: 100%;
+    border: round $panel;
+    border-title-color: $text-muted;
+    border-title-style: bold;
+    border-title-align: left;
+}
+
+#right:focus-within {
+    border: round $accent 60%;
+    border-title-color: $accent;
+}
+
+#insights-scroll {
+    height: 1fr;
+    padding: 1 2;
+}
+
+#question-bar {
+    height: 3;
+    padding: 0 1;
+    border-top: tall $panel;
+}
+
+.stat-section {
+    color: $text-disabled;
+    padding: 0 1;
+    height: 1;
+}
+
+.stat-row {
+    color: $text;
+    padding: 0 2;
+    height: 1;
+}
+
+.stat-sep {
+    color: $panel;
+    padding: 0 1;
+    height: 1;
+}

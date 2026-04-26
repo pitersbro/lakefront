@@ -130,28 +130,12 @@ class SourcePane(Widget):
         Binding("k", "forward_k", "Up", show=True),
     ]
 
-    DEFAULT_CSS = """
-    SourcePane { background: $surface; }
-    SourcePane > .pane-title {
-        background: $panel;
-        color: $text-muted;
-        padding: 0 1;
-        text-style: bold;
-        height: 1;
-    }
-    SourcePane .group-label {
-        color: $text-disabled;
-        padding: 0 1;
-        height: 1;
-    }
-    """
-
     def __init__(self, ctx: core.ProjectContext, **kwargs):
         super().__init__(**kwargs)
         self.ctx = ctx
+        self.border_title = "Sources"
 
     def compose(self) -> ComposeResult:
-        yield Static("SOURCES", classes="pane-title")
         with VerticalScroll():
             for typ, names in self.ctx.sources_by_type().items():
                 yield Static(typ.upper(), classes="group-label")
