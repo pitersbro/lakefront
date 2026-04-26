@@ -14,8 +14,7 @@ column names, values and numbers from the profile.
 class Analyzer:
     def __init__(self, ctx: ContextBase):
         self.ctx = ctx
-        # TODO: Make it confiurable via project.toml core section
-        self._limit = 50000
+        self._limit = ctx.settings.core.analyzer_row_limit
 
     def analyze_sql(self, sql: str) -> dict:
         """Run a SQL query and profile the resulting DataFrame."""
@@ -25,7 +24,7 @@ class Analyzer:
 
     def analyze_source(self, source_name: str) -> dict:
         """Profile an entire source by sampling it with a SQL query."""
-        sql = f'SELECT * FROM "{source_name}" LIMIT 50000'
+        sql = f'SELECT * FROM "{source_name}" LIMIT {self._limit}'
         result = self.ctx.query(sql)
         df = result.df()
         return self.analyze_pandas(df, name=source_name)
