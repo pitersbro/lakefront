@@ -55,6 +55,7 @@ def get_project_path(profile: str) -> Path:
 
 
 class Settings(BaseSettings):
+    core: models.CoreConfig = models.CoreConfig()
     duckdb: models.DuckDBConfig = models.DuckDBConfig()
     s3: models.S3Config = models.S3Config()
     anthropic: models.AnthropicConfig = models.AnthropicConfig()
@@ -63,6 +64,7 @@ class Settings(BaseSettings):
     model_config = {
         "env_prefix": "LAKEFRONT_",
         "env_nested_delimiter": "__",
+        "extra": "allow",
     }
 
     @classmethod
@@ -81,6 +83,7 @@ def _build_template() -> str:
     lines = []
 
     for section, model in [
+        ("core", models.CoreConfig),
         ("duckdb", models.DuckDBConfig),
         ("s3", models.S3Config),
         ("anthropic", models.AnthropicConfig),

@@ -5,6 +5,11 @@ from pydantic import BaseModel, Field
 from lakefront import util
 
 
+class CoreConfig(BaseModel):
+    theme: str = "tokyo-night"
+    analyzer_row_limit: int = 1000
+
+
 class DuckDBConfig(BaseModel):
     threads: int = 4
     memory_limit: str = "2GB"
