@@ -1,13 +1,12 @@
+from __future__ import annotations
+
 import os
-from functools import lru_cache
 from pathlib import Path
 
 import tomli_w
 import tomllib
 from pydantic import Field
-from pydantic_settings import (
-    BaseSettings,
-)
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
 
 from lakefront import models, util
 
@@ -54,6 +53,19 @@ def get_project_path(profile: str) -> Path:
     return PROJECTS_DIR / f"{profile}.toml"
 
 
+class TomlConfigSettingsSource(PydanticBaseSettingsSource):
+    def __init__(self, settings_cls, toml_path: Path):
+        super().__init__(settings_cls)
+        with toml_path.open("rb") as f:
+            self._data = tomllib.load(f)
+
+    def get_field_value(self, field, field_name):
+        return self._data.get(field_name), field_name, False
+
+    def __call__(self):
+        return self._data
+
+
 class Settings(BaseSettings):
     core: models.CoreConfig = models.CoreConfig()
     duckdb: models.DuckDBConfig = models.DuckDBConfig()
@@ -68,14 +80,32 @@ class Settings(BaseSettings):
     }
 
     @classmethod
-    def from_file(cls, file_path: Path) -> "Settings":
-        """Load settings from a toml file"""
+    def settings_customise_sources(
+        cls,
+        settings_cls,
+        init_settings,
+        env_settings,
+        dotenv_settings,
+        file_secret_settings,
+    ):
+        """Customise the settings sources to include a TOML file source if a path is provided.
+        Final resolution order (highest to lowest precedence):
 
-        with file_path.open("rb") as f:
-            data = tomllib.load(f)
-        obj = cls.model_validate(data)
-        obj.path = file_path
-        return obj
+        1. Initialization kwargs
+        2. Environment variables
+        3. .env file
+        4. TOML file at the provided path
+
+        """
+        toml_path = init_settings.init_kwargs.get("path")
+        if toml_path:
+            toml_source = TomlConfigSettingsSource(settings_cls, Path(toml_path))
+            return init_settings, env_settings, dotenv_settings, toml_source
+        return init_settings, env_settings, dotenv_settings, file_secret_settings
+
+    @classmethod
+    def from_file(cls, file_path: Path) -> Settings:
+        return cls(path=file_path)
 
 
 def _build_template() -> str:
@@ -112,7 +142,6 @@ def _build_template() -> str:
 PROFILE_TEMPLATE = _build_template()
 
 
-@lru_cache(maxsize=None)
 def load_settings(profile: str | None = None) -> Settings:
     profile = profile or get_active_profile()
     config_file = CONFIG_DIR / f"{profile}.toml"
