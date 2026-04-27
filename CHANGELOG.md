@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.1 (2026-04-27)
+
+### Fix
+
+- toml properties not being overriden by corresponding env vars
+
 ## v0.7.0 (2026-04-26)
 
 ### Feat
