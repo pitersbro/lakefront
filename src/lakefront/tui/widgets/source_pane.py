@@ -47,7 +47,7 @@ class SourceItem(Widget):
                 self._fetch_columns()
             for col_name, col_type in self._columns:
                 yield FocusableStatic(
-                    f"  {col_name}  [{col_type}]", classes="column-row"
+                    f"  {col_name}: {col_type}", markup=False, classes="column-row"
                 )
 
     def _fetch_columns(self):
@@ -143,13 +143,27 @@ class SourcePane(Widget):
         else:
             self.notify("No active source", timeout=1)
 
+    def _focused_source_item(self) -> "SourceItem | None":
+        """Return the SourceItem that owns the current focus, even when a child has focus."""
+        focused = self.app.focused
+        if isinstance(focused, SourceItem):
+            return focused
+        # When a source is expanded, focus moves to a FocusableStatic child inside
+        # the SourceItem rather than the SourceItem itself. Walk up the ancestor chain
+        # so h/l navigation still knows which source is currently active.
+        if focused is not None:
+            for ancestor in focused.ancestors:
+                if isinstance(ancestor, SourceItem):
+                    return ancestor
+        return None
+
     def action_focus_next_source(self) -> None:
         items: list[SourceItem] = list(self.query(SourceItem))
         if not items:
             return
-        focused = self.app.focused
+        current = self._focused_source_item()
         try:
-            idx = items.index(focused) if isinstance(focused, SourceItem) else -1
+            idx = items.index(current) if current is not None else -1
         except ValueError:
             idx = -1
         next_idx = (idx + 1) % len(items)
@@ -162,9 +176,9 @@ class SourcePane(Widget):
         items: list[SourceItem] = list(self.query(SourceItem))
         if not items:
             return
-        focused = self.app.focused
+        current = self._focused_source_item()
         try:
-            idx = items.index(focused) if isinstance(focused, SourceItem) else 0
+            idx = items.index(current) if current is not None else 0
         except ValueError:
             idx = 0
         prev_idx = (idx - 1) % len(items)
