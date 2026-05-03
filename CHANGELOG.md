@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.8.2 (2026-05-03)
+
+### Fix
+
+- **tui**: show column types in expanded source items
+- **tui**: restore h/l source navigation when a source is expanded
+
 ## v0.8.1 (2026-05-03)
 
 ### Fix
