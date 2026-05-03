@@ -52,14 +52,36 @@ def run_app(project: str):
     LakefrontApp(ctx).run()
 
 
+def run_nav():
+    from lakefront.core.config import LAKEFRONT_HOME
+    from lakefront.log import configure_for_tui
+    from lakefront.tui.app import LakefrontApp
+
+    log_file = LAKEFRONT_HOME / "lakefront.log"
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+    log_file.touch(exist_ok=True)
+    configure_for_tui(log_file)
+
+    LakefrontApp().run()
+
+
 @app.command()
 def demo():
-    console.print("[bold green]Starting demo...[/]")
+    """Launch the built-in demo project (creates it on first run)."""
+    from lakefront.core.demo import ensure_demo_project
+
+    console.print("[bold green]Setting up demo project...[/]")
+    ensure_demo_project()
     run_app("demo")
 
 
 @app.command()
 def ui(
-    project: str = typer.Option(..., "--project", "-p", help="Project to open"),
+    project: str = typer.Option(
+        None, "--project", "-p", help="Project to open (shows navigation screen if omitted)"
+    ),
 ):
-    run_app(project)
+    if project:
+        run_app(project)
+    else:
+        run_nav()
