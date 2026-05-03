@@ -79,6 +79,9 @@ async def test_navigation_screen_mounted_without_ctx():
 async def test_navigation_screen_lists_projects():
     async with LakefrontApp().run_test() as pilot:
         await pilot.pause()
+        await pilot.pause()  # allow worker to complete
         screen = pilot.app.screen
         assert isinstance(screen, NavigationScreen)
-        assert len(screen._project_names) == len(core.list_projects())
+        from textual.widgets import DataTable
+        table = screen.query_one("#projects-table", DataTable)
+        assert table.row_count == len(core.list_projects())
