@@ -15,19 +15,27 @@ class LakefrontApp(App):
         Binding("shift+tab", "focus_previous", show=False),
     ]
 
-    def __init__(self, ctx: ProjectContext, **kwargs) -> None:
+    def __init__(self, ctx: ProjectContext | None = None, **kwargs) -> None:
         super().__init__(**kwargs)
         self.ctx = ctx
         self.sub_title = f"Lakehouse Observability Platform - v{get_version()}"
-        _theme = ctx.settings.core.theme
-        if _theme not in self.available_themes.keys():
-            self.theme = DEFAULT_THEME
-            self.notify(
-                f"Theme '{_theme} not found. Falling back to default theme '{DEFAULT_THEME}'.",
-                severity="warning",
-            )
+        if ctx is not None:
+            _theme = ctx.settings.core.theme
+            if _theme not in self.available_themes.keys():
+                self.theme = DEFAULT_THEME
+                self.notify(
+                    f"Theme '{_theme} not found. Falling back to default theme '{DEFAULT_THEME}'.",
+                    severity="warning",
+                )
+            else:
+                self.theme = _theme
         else:
-            self.theme = _theme
+            self.theme = DEFAULT_THEME
 
     def on_mount(self) -> None:
-        self.push_screen(ProjectScreen(self.ctx))
+        if self.ctx is not None:
+            self.push_screen(ProjectScreen(self.ctx))
+        else:
+            from lakefront.tui.screens.navigation import NavigationScreen
+
+            self.push_screen(NavigationScreen())

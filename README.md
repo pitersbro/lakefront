@@ -2,6 +2,39 @@
 
 A terminal-based lakehouse observability platform for exploring and managing data sources from your command line.
 
+![Project](docs/project-screen.svg)
+
+---
+
+## Quickstart
+
+The fastest way to see Lakefront in action is the built-in demo:
+
+```bash
+uv run lakefront init
+uv run lakefront demo
+```
+
+This seeds a sample project with two CSV datasets and opens it straight in the TUI.
+
+To set up your own project instead:
+
+```bash
+# 1. Initialise ~/.lakefront
+uv run lakefront init
+
+# 2. Create a project
+uv run lakefront projects create my-project -d "My first project"
+
+# 3. Attach a data source (local Parquet or CSV)
+uv run lakefront projects source add -p my-project -n orders -k local --path /data/orders.parquet
+
+# 4. Open the TUI
+uv run lakefront ui --project my-project
+```
+
+Running `lakefront ui` without `--project` opens a navigation screen listing all your projects.
+
 ---
 
 ## About
@@ -101,8 +134,6 @@ uv run lakefront projects source remove -p my-project -n raw
 
 The interactive TUI provides a rich, multi-pane interface for exploring and analyzing data without leaving the terminal.
 
-![Project](docs/project-screen.svg)
-
 ### Project Screen
 
 The main project workspace with a three-pane layout:
@@ -112,6 +143,7 @@ The main project workspace with a three-pane layout:
 - Browse all attached sources with expandable tree view
 - View column names and data types inline
 - Quickly navigate between sources
+- **P**: Load statistical profile for the selected source in the right pane
 
 **Center Pane — SQL Editor & Results:**
 
@@ -126,8 +158,9 @@ The main project workspace with a three-pane layout:
 
 **Right Pane — Profiler:**
 
-- Live query execution statistics
-- Row counts, memory usage, and timing information
+- Statistical summary for the selected source
+- Row counts, column types, null rates, and value distributions
+- Loaded on demand with **P** from the source pane
 
 ### Explore Screen
 

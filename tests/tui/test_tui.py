@@ -4,6 +4,7 @@ from lakefront import core
 from lakefront.tui.app import LakefrontApp
 from lakefront.tui.modals.confirm import ConfirmModal
 from lakefront.tui.modals.source_attach import SourceAttachModal
+from lakefront.tui.screens.navigation import NavigationScreen
 from lakefront.tui.screens.project import ProjectScreen
 from lakefront.tui.widgets.source_pane import SourcePane
 
@@ -65,3 +66,22 @@ async def test_app_exit(ctx):
     async with LakefrontApp(ctx).run_test() as pilot:
         await pilot.pause()
         await pilot.press("q")
+
+
+@pytest.mark.asyncio
+async def test_navigation_screen_mounted_without_ctx():
+    async with LakefrontApp().run_test() as pilot:
+        await pilot.pause()
+        assert isinstance(pilot.app.screen, NavigationScreen)
+
+
+@pytest.mark.asyncio
+async def test_navigation_screen_lists_projects():
+    async with LakefrontApp().run_test() as pilot:
+        await pilot.pause()
+        await pilot.pause()  # allow worker to complete
+        screen = pilot.app.screen
+        assert isinstance(screen, NavigationScreen)
+        from textual.widgets import DataTable
+        table = screen.query_one("#projects-table", DataTable)
+        assert table.row_count == len(core.list_projects())

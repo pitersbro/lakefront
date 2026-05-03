@@ -3,6 +3,7 @@ from __future__ import annotations
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import VerticalScroll
+from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Static
@@ -94,6 +95,11 @@ class SourceItem(Widget):
 class SourcePane(Widget):
     """Left pane: lists attached data sources grouped by kind."""
 
+    class ProfileRequested(Message):
+        def __init__(self, source_name: str) -> None:
+            super().__init__()
+            self.source_name = source_name
+
     can_focus = True
     # Reactive: holds the name of the currently active source
     active_source: reactive[str | None] = reactive(None)
@@ -102,6 +108,7 @@ class SourcePane(Widget):
         Binding("a", "attach", "Attach source", show=True),
         Binding("d", "detach", "Detach source", show=True),
         Binding("e", "explore", "Explore", show=True),
+        Binding("p", "profile", "Profile", show=True),
         Binding("h", "focus_prev_source", "Prev source", show=True),
         Binding("l", "focus_next_source", "Next source", show=True),
         Binding("j", "forward_j", "Down", show=True),
@@ -232,3 +239,9 @@ class SourcePane(Widget):
         from lakefront.tui.screens.explore import ExploreScreen
 
         self.app.push_screen(ExploreScreen(self.ctx, self.active_source))
+
+    def action_profile(self) -> None:
+        if self.active_source is None:
+            self.notify("Select a source first", severity="warning")
+            return
+        self.post_message(self.ProfileRequested(self.active_source))

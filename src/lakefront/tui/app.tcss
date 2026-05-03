@@ -234,3 +234,43 @@ ExploreScreen #body {
     padding: 0 1;
     height: 1;
 }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   NavigationScreen
+   ══════════════════════════════════════════════════════════════════ */
+
+NavigationScreen {
+    layout: vertical;
+}
+
+#nav-body {
+    height: 1fr;
+    align: center middle;
+}
+
+#nav-container {
+    width: 80;
+    height: auto;
+    border: round $panel;
+    padding: 1 2;
+}
+
+#nav-title {
+    text-align: center;
+    color: $text-muted;
+    text-style: bold;
+    padding: 0 0 1 0;
+}
+
+#nav-empty {
+    text-align: center;
+    color: $text-muted;
+    padding: 2 1;
+}
+
+#projects-table {
+    height: auto;
+    max-height: 30;
+    border: none;
+}

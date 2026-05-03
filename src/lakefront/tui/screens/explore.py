@@ -101,7 +101,7 @@ class ExploreScreen(Screen):
         try:
             md = self.ctx.analyzer().ask_llm(question, self._profile)
         except LlmError as e:
-            self.notify(f"LLM request failed: {e}", severity="error")
+            self.app.call_from_thread(self.notify, f"LLM request failed: {e}", severity="error")
             md = f"**Error:** {e}"
         self.app.call_from_thread(self._set_insights, md)
 

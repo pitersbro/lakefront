@@ -8,8 +8,6 @@ from textual.widgets import Static
 
 from lakefront.core import ProjectContext
 
-from .source_pane import SourcePane
-
 
 class ProfilerPane(Widget):
     """Right pane: summary statistics for the active source or result."""
@@ -20,28 +18,35 @@ class ProfilerPane(Widget):
         super().__init__(**kwargs)
         self.ctx = ctx
         self.border_title = "Summary"
+        self._generation = 0
 
     def on_focus(self) -> None:
         self.query_one("#profiler-container", VerticalScroll).focus()
 
     def compose(self) -> ComposeResult:
         with VerticalScroll(id="profiler-container", can_focus=True):
-            yield Static("Loading…", id="profiler-content")
-
-    def on_mount(self) -> None:
-        source_pane = self.screen.query_one(SourcePane)
-        self.watch(source_pane, "active_source", self._load_profile)
-
-        if source_pane.active_source is not None:
-            self._load_profile(source_pane.active_source)
+            yield Static(
+                "Press [bold]p[/bold] on a source to load its profile.",
+                id="profiler-content",
+                markup=True,
+            )
 
     @work(thread=True)
     def _load_profile(self, source_name: str) -> None:
-        """Sample the source and build a statistical profile."""
+        # Each call claims a new generation. If the user triggers profiling quickly,
+        # multiple workers run concurrently. Only the worker whose generation still
+        # matches _generation when it finishes is the latest request — all earlier
+        # ones discard their results instead of updating the UI with stale data.
+        self._generation += 1
+        generation = self._generation
         try:
-            self._profile = self.ctx.analyzer().analyze_source(source_name)
-            self.app.call_from_thread(self._render_stats, self._profile)
+            profile = self.ctx.analyzer().analyze_source(source_name)
+            if generation != self._generation:
+                return
+            self.app.call_from_thread(self._render_stats, profile)
         except Exception as e:
+            if generation != self._generation:
+                return
             self.app.call_from_thread(
                 self.query_one("#profiler-content", Static).update,
                 f"[red]Error loading source data profile:[/red] {e}",

@@ -4,6 +4,7 @@ from .config import (
     initialize,
     load_settings,
 )
+from .demo import ensure_demo_project
 from .exceptions import (
     LlmError,
     ProjectExistsError,
@@ -34,6 +35,7 @@ __all__ = [
     "ProfileConfigurationService",
     "ProjectConfigurationService",
     "ProjectContext",
+    "ensure_demo_project",
     "get_project",
     "load_settings",
     "list_projects",
