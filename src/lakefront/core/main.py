@@ -17,7 +17,11 @@ class ProjectContext(QueryEngineMixin, ContextBase):
     def __post_init__(self):
         self.settings = load_settings(profile=self.profile)
         self.sources = []
-        self.configure_s3()
+        # source_attach/source_detach both call reinitialize(), which reconstructs
+        # ProjectContext from scratch, so _sources already reflects the updated list
+        # and this guard stays correct after sources are added or removed at runtime.
+        if any(src.path.startswith("s3://") for src in self._sources):
+            self.configure_s3()
         for src in self._sources:
             logger.debug(f'Loading source "{src.name}" from path: {src.path}')
             source = Source(self, src)
