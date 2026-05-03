@@ -2,6 +2,7 @@ from .config import (
     ProfileConfigurationService,
     ProjectConfigurationService,
     initialize,
+    lakefront_settings,
     load_settings,
 )
 from .demo import ensure_demo_project
@@ -37,6 +38,7 @@ __all__ = [
     "ProjectContext",
     "ensure_demo_project",
     "get_project",
+    "lakefront_settings",
     "load_settings",
     "list_projects",
     "LlmError",

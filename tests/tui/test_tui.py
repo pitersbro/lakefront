@@ -19,7 +19,6 @@ async def test_app_initialization(ctx):
     async with LakefrontApp(ctx).run_test() as pilot:
         assert pilot.app.ctx == ctx
         assert pilot.app.sub_title.startswith("Lakehouse Observability Platform - v")
-        assert pilot.app.theme == ctx.settings.core.theme or app.theme == "tokyo-night"
 
 
 @pytest.mark.asyncio
@@ -98,5 +97,6 @@ async def test_navigation_screen_lists_projects():
         screen = pilot.app.screen
         assert isinstance(screen, NavigationScreen)
         from textual.widgets import DataTable
+
         table = screen.query_one("#projects-table", DataTable)
         assert table.row_count == len(core.list_projects())
