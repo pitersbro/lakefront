@@ -6,7 +6,7 @@ from lakefront.tui.modals.confirm import ConfirmModal
 from lakefront.tui.modals.source_attach import SourceAttachModal
 from lakefront.tui.screens.navigation import NavigationScreen
 from lakefront.tui.screens.project import ProjectScreen
-from lakefront.tui.widgets.source_pane import SourcePane
+from lakefront.tui.widgets.source_pane import SourceItem, SourcePane
 
 
 @pytest.fixture(scope="module")
@@ -66,6 +66,21 @@ async def test_app_exit(ctx):
     async with LakefrontApp(ctx).run_test() as pilot:
         await pilot.pause()
         await pilot.press("q")
+
+
+@pytest.mark.asyncio
+async def test_source_item_shows_column_types(ctx):
+    async with LakefrontApp(ctx).run_test() as pilot:
+        await pilot.pause()
+        source_pane = pilot.app.screen.query_one(SourcePane)
+        first_item = source_pane.query(SourceItem).first()
+        first_item.focus()
+        await pilot.press("space")  # expand
+        await pilot.pause()
+        assert len(first_item._columns) > 0, "No columns fetched after expanding source"
+        for col_name, col_type in first_item._columns:
+            assert col_name != "", "Column name is empty"
+            assert col_type != "", f"Column type is empty for column: {col_name!r}"
 
 
 @pytest.mark.asyncio

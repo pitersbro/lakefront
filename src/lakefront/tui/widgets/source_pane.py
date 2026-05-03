@@ -47,7 +47,7 @@ class SourceItem(Widget):
                 self._fetch_columns()
             for col_name, col_type in self._columns:
                 yield FocusableStatic(
-                    f"  {col_name}  [{col_type}]", classes="column-row"
+                    f"  {col_name}: {col_type}", markup=False, classes="column-row"
                 )
 
     def _fetch_columns(self):
