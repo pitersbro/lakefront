@@ -6,7 +6,11 @@ from pathlib import Path
 import tomli_w
 import tomllib
 from pydantic import Field
-from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 from lakefront import models, util
 
@@ -34,6 +38,7 @@ LAKEFRONT_HOME = get_env_var("LAKEFRONT_HOME", "~/.lakefront")
 CONFIG_DIR = LAKEFRONT_HOME / "config"
 PROJECTS_DIR = LAKEFRONT_HOME / "projects"
 STATE_FILE = LAKEFRONT_HOME / "state"
+LAKEFRONT_SETTINGS_TOML = LAKEFRONT_HOME / "settings.toml"
 
 
 def get_active_profile() -> str:
@@ -64,6 +69,42 @@ class TomlConfigSettingsSource(PydanticBaseSettingsSource):
 
     def __call__(self):
         return self._data
+
+
+class LakefrontSettings(BaseSettings):
+    app: models.AppConfig = models.AppConfig()
+
+    model_config = SettingsConfigDict(
+        env_prefix="LAKEFRONT_",
+        env_nested_delimiter="__",
+        extra="allow",
+    )
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings,
+        env_settings,
+        dotenv_settings,
+        file_secret_settings,
+    ):
+        toml_path = LAKEFRONT_SETTINGS_TOML
+        if not toml_path.exists():
+            return (
+                init_settings,
+                env_settings,
+                dotenv_settings,
+                file_secret_settings,
+            )
+        toml_source = TomlConfigSettingsSource(settings_cls, Path(toml_path))
+        return (
+            init_settings,
+            env_settings,
+            dotenv_settings,
+            toml_source,
+            file_secret_settings,
+        )
 
 
 class Settings(BaseSettings):
@@ -150,6 +191,10 @@ def load_settings(profile: str | None = None) -> Settings:
     raise FileNotFoundError(f"Profile '{profile}' not found at {config_file}.")
 
 
+def lakefront_settings() -> LakefrontSettings:
+    return LakefrontSettings()
+
+
 class ProfileConfigurationService:
     """Service for managing configuration profiles."""
 
@@ -222,12 +267,17 @@ def initialize():
     LAKEFRONT_HOME.mkdir(parents=True, exist_ok=True)
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
+    LAKEFRONT_SETTINGS_TOML.touch(exist_ok=True)
 
     if not STATE_FILE.exists():
         set_active_profile("default")
 
     if not ProfileConfigurationService.list_profiles():
         ProfileConfigurationService.create_profile("default")
+
+    if LAKEFRONT_SETTINGS_TOML.stat().st_size == 0:
+        with LAKEFRONT_SETTINGS_TOML.open("wb") as f:
+            tomli_w.dump(LakefrontSettings().model_dump(), f)
 
 
 class ProjectConfigurationService:

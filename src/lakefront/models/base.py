@@ -5,8 +5,18 @@ from pydantic import BaseModel, Field
 from lakefront import util
 
 
+class AppConfig(BaseModel):
+    theme: str = Field(
+        default="tokyo-night",
+        description="The theme to use for the TUI. This can be overridden by project settings.",
+    )
+
+
 class CoreConfig(BaseModel):
-    theme: str = "tokyo-night"
+    theme: str = Field(
+        default="tokyo-night",
+        description="The default theme for a project. Overrides the app theme if app is run in a project context.",
+    )
     analyzer_row_limit: int = 1000
 
 
