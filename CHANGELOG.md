@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.0 (2026-05-03)
+
+### Feat
+
+- **core**: introduce global settings.toml for app-level configuration
+
 ## v0.8.2 (2026-05-03)
 
 ### Fix
