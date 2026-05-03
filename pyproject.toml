@@ -34,10 +34,6 @@ classifiers = [
     "Topic :: Terminals",
 ]
 
-[project.urls]
-Homepage = "https://github.com/pitersbro/lakefront"
-Repository = "https://github.com/pitersbro/lakefront"
-"Bug Tracker" = "https://github.com/pitersbro/lakefront/issues"
 dependencies = [
     "duckdb>=1.0.0,<2.0.0",
     "pandas>=2.3.3",
@@ -49,6 +45,11 @@ dependencies = [
     "loguru>=0.7.3",
     "httpx>=0.28.1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/pitersbro/lakefront"
+Repository = "https://github.com/pitersbro/lakefront"
+"Bug Tracker" = "https://github.com/pitersbro/lakefront/issues"
 
 [dependency-groups]
 dev = [
