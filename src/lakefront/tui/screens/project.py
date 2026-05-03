@@ -41,3 +41,6 @@ class ProjectScreen(Screen):
             results_pane.run_query(message.sql, message.new_tab)
         except Exception as e:
             self.notify(f"Could not run query: {e}", severity="error")
+
+    def on_source_pane_profile_requested(self, message: SourcePane.ProfileRequested) -> None:
+        self.query_one("#profiler-pane", ProfilerPane)._load_profile(message.source_name)
