@@ -123,7 +123,7 @@ class ResultsPane(Widget):
                 self._apply_result, sql, tab_id, df, replace, elapsed_ms
             )
         except Exception as e:
-            self.notify(f"Error: {e}", severity="error")
+            self.app.call_from_thread(self.notify, f"Error: {e}", severity="error")
             self.app.call_from_thread(
                 self._update_result_message, "Error executing query"
             )
