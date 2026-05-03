@@ -4,6 +4,40 @@ version = "0.8.0"
 description = "Lakehouse Observability Platform"
 readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Piotr Nowakowski", email = "piotrnow@proton.me" },
+]
+keywords = [
+    "lakehouse",
+    "duckdb",
+    "tui",
+    "data",
+    "parquet",
+    "s3",
+    "terminal",
+    "observability",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Database",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Terminals",
+]
+
+[project.urls]
+Homepage = "https://github.com/pitersbro/lakefront"
+Repository = "https://github.com/pitersbro/lakefront"
+"Bug Tracker" = "https://github.com/pitersbro/lakefront/issues"
 dependencies = [
     "duckdb>=1.0.0,<2.0.0",
     "pandas>=2.3.3",
