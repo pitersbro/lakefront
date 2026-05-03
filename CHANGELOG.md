@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.8.0 (2026-05-03)
+
+### Feat
+
+- add navigation screen and demo project setup
+
+### Fix
+
+- **tui**: make profiler on-demand via 'p' keybind
+- **core**: skip configure_s3 for projects with no S3 sources
+- **tui**: move NavigationScreen I/O off the main thread
+- **tui**: use call_from_thread for notify calls inside thread workers
+
 ## v0.7.1 (2026-04-27)
 
 ### Fix
