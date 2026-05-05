@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.1 (2026-05-05)
+
+### Fix
+
+- **core**: validate source name and path in source_attach
+
 ## v0.9.0 (2026-05-03)
 
 ### Feat
