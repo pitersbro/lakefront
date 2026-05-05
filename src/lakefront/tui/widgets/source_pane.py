@@ -9,6 +9,7 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from lakefront import core
+from lakefront.core.exceptions import LakefrontError
 from lakefront.tui.modals.confirm import ConfirmModal
 from lakefront.tui.modals.source_attach import SourceAttachModal
 
@@ -209,7 +210,11 @@ class SourcePane(Widget):
             self.notify("Cancelled", severity="warning")
         else:
             name, path = result["name"], result["path"]
-            self.ctx.source_attach(name=name, path=path, kind="local")
+            try:
+                self.ctx.source_attach(name=name, path=path, kind="local")
+            except LakefrontError as e:
+                self.notify(str(e), severity="error", timeout=8)
+                return
             self.ctx = self.ctx.reinitialize()  # ← reload context to include new source
             self._rebuild_sources()
             self.notify(
