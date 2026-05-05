@@ -1,8 +1,28 @@
 # Lakefront
 
+[![PyPI version](https://img.shields.io/pypi/v/lakefront)](https://pypi.org/project/lakefront/)
+[![Python](https://img.shields.io/pypi/pyversions/lakefront)](https://pypi.org/project/lakefront/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A terminal-based lakehouse observability platform for exploring and managing data sources from your command line.
 
 ![Project](docs/project-screen.svg)
+
+---
+
+## Installation
+
+```bash
+pip install lakefront
+```
+
+Or with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv add lakefront
+# or install as a standalone tool
+uv tool install lakefront
+```
 
 ---
 
@@ -11,8 +31,8 @@ A terminal-based lakehouse observability platform for exploring and managing dat
 The fastest way to see Lakefront in action is the built-in demo:
 
 ```bash
-uv run lakefront init
-uv run lakefront demo
+lakefront init
+lakefront demo
 ```
 
 This seeds a sample project with two CSV datasets and opens it straight in the TUI.
@@ -21,16 +41,16 @@ To set up your own project instead:
 
 ```bash
 # 1. Initialise ~/.lakefront
-uv run lakefront init
+lakefront init
 
 # 2. Create a project
-uv run lakefront projects create my-project -d "My first project"
+lakefront projects create my-project -d "My first project"
 
 # 3. Attach a data source (local Parquet or CSV)
-uv run lakefront projects source add -p my-project -n orders -k local --path /data/orders.parquet
+lakefront projects source add -p my-project -n orders -k local --path /data/orders.parquet
 
 # 4. Open the TUI
-uv run lakefront ui --project my-project
+lakefront ui --project my-project
 ```
 
 Running `lakefront ui` without `--project` opens a navigation screen listing all your projects.
@@ -56,29 +76,29 @@ Working with lakehouse data — Parquet files on local disk or S3, DuckDB querie
 Bootstrap the `~/.lakefront` directory structure and create a default profile:
 
 ```bash
-uv run lakefront init
+lakefront init
 ```
 
 ### Config Management
 
 ```bash
 # List all profiles
-uv run lakefront config list
+lakefront config list
 
 # Show config directories and paths
-uv run lakefront config info
+lakefront config info
 
 # Create a new profile
-uv run lakefront config create --profile staging
+lakefront config create --profile staging
 
 # Inspect a profile's current settings
-uv run lakefront config inspect --profile staging
+lakefront config inspect --profile staging
 
 # See which profile is active
-uv run lakefront config get-active
+lakefront config get-active
 
 # Switch to a different profile
-uv run lakefront config set-active --profile staging
+lakefront config set-active --profile staging
 ```
 
 Secrets (S3 access keys etc.) can be written to the TOML profile or
@@ -102,17 +122,17 @@ Projects are the top-level organisational unit in Lakefront. Each project lives 
 
 ```bash
 # List all projects
-uv run lakefront projects list
+lakefront projects list
 
 # Create a new project
-uv run lakefront projects create my-project -d "EDA on S3 parquet" -p staging
+lakefront projects create my-project -d "EDA on S3 parquet" -p staging
 
 # Inspect a project
-uv run lakefront projects inspect my-project
+lakefront projects inspect my-project
 
 # Delete a project (prompts for confirmation)
-uv run lakefront projects delete my-project
-uv run lakefront projects delete my-project --yes
+lakefront projects delete my-project
+lakefront projects delete my-project --yes
 ```
 
 ### Source Management
@@ -121,11 +141,11 @@ Data sources are attached to a project and point to a local path or S3 prefix.
 
 ```bash
 # Add a source
-uv run lakefront projects source add -p my-project -n raw -k s3 --path s3://bucket/raw/
-uv run lakefront projects source add -p my-project -n local -k local --path /data/parquet/
+lakefront projects source add -p my-project -n raw -k s3 --path s3://bucket/raw/
+lakefront projects source add -p my-project -n local -k local --path /data/parquet/
 
 # Remove a source
-uv run lakefront projects source remove -p my-project -n raw
+lakefront projects source remove -p my-project -n raw
 ```
 
 ---
