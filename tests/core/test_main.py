@@ -1,6 +1,7 @@
 import pytest
 
 from lakefront import core, models
+from lakefront.core.exceptions import LakefrontError, SourceExistsError
 
 
 def test_context_is_created(ctx):
@@ -42,10 +43,23 @@ def test_context_source_not_found_ignored():
     assert len(ctx.sources) == 0
 
 
-def test_context_source_attach_invalid_ignored(ctx):
-    src = "nonexisting.csv"
-    ctx.source_attach("myfile", kind="local", path=src)
-    assert len(ctx.sources) == 3
+def test_context_source_attach_nonexistent_path_raises(ctx):
+    with pytest.raises(LakefrontError, match="does not exist"):
+        ctx.source_attach("myfile", kind="local", path="nonexisting.csv")
+
+
+def test_context_source_attach_invalid_name_raises(tmp_path, ctx):
+    src = tmp_path / "file.csv"
+    src.touch()
+    with pytest.raises(LakefrontError, match="Invalid source name"):
+        ctx.source_attach("my-invalid name!", kind="local", path=src.as_posix())
+
+
+def test_context_source_attach_duplicate_name_raises(tmp_path, ctx):
+    src = tmp_path / "file.csv"
+    src.touch()
+    with pytest.raises(SourceExistsError, match="already exists"):
+        ctx.source_attach(ctx.sources[0].name, kind="local", path=src.as_posix())
 
 
 def test_context_attach_detach_source_cycle(tmp_path, ctx):

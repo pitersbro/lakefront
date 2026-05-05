@@ -1,15 +1,18 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
-from lakefront import models
+from lakefront import models, util
 from lakefront.log import logger
 
 from .analyzer import Analyzer
 from .base import ContextBase, QueryResult, Source
 from .config import PROJECTS_DIR, ProjectConfigurationService, load_settings
-from .exceptions import SourceNotFoundError
+from .exceptions import LakefrontError, SourceExistsError, SourceNotFoundError
 from .query import QueryEngineMixin
+
+_VALID_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 @dataclass
@@ -87,8 +90,16 @@ class ProjectContext(QueryEngineMixin, ContextBase):
 
     def source_attach(self, name: str, path: str, kind: str) -> ProjectContext:
         """Attach a new source to the project and reinitialize the context."""
+        if not _VALID_IDENTIFIER.match(name):
+            raise LakefrontError(
+                f'Invalid source name "{name}". '
+                "Names must start with a letter or underscore and contain only "
+                "letters, digits, and underscores."
+            )
+        if not util.PathInfo(path, self.profile).exists():
+            raise LakefrontError(f'Path "{path}" does not exist or is inaccessible.')
         if any(s.name == name for s in self.sources):
-            raise ValueError(f'Source with name "{name}" already exists.')
+            raise SourceExistsError(f'Source with name "{name}" already exists.')
 
         new_source = models.DataSource(name=name, path=path)
         ProjectConfigurationService.add_source(self.name, new_source)
