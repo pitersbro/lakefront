@@ -14,7 +14,7 @@ from .exceptions import (
     SourceNotFoundError,
     SourceTypeInvalidError,
 )
-from .main import ProjectContext
+from .project import ProjectContext
 
 
 def get_version() -> str:

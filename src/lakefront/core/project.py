@@ -1,34 +1,46 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from pathlib import Path
 
-from lakefront import models, util
+from lakefront import models
 from lakefront.log import logger
 
+from . import fs
 from .analyzer import Analyzer
-from .base import ContextBase, QueryResult, Source
-from .config import PROJECTS_DIR, ProjectConfigurationService, load_settings
+from .config import PROJECTS_DIR, ProjectConfigurationService, Settings, load_settings
+from .context import Context, set_context as _set_context
+from .engine import QueryEngineMixin, QueryResult
 from .exceptions import LakefrontError, SourceExistsError, SourceNotFoundError
-from .query import QueryEngineMixin
+from .source import Source, resolve
 
 _VALID_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 @dataclass
-class ProjectContext(QueryEngineMixin, ContextBase):
+class ProjectContext(QueryEngineMixin):
+    name: str
+    profile: str
+    _sources: list[models.DataSource]
+    sources: list[Source] = field(init=False)
+
+    settings: Settings = field(init=False)
+    log_file: Path = field(init=False)
+
     def __post_init__(self):
         self.settings = load_settings(profile=self.profile)
+        self.set_context()
         self.sources = []
         # source_attach/source_detach both call reinitialize(), which reconstructs
         # ProjectContext from scratch, so _sources already reflects the updated list
         # and this guard stays correct after sources are added or removed at runtime.
-        if any(src.path.startswith("s3://") for src in self._sources):
+        if any(src.uri.startswith("s3://") for src in self._sources):
             self.configure_s3()
         for src in self._sources:
-            logger.debug(f'Loading source "{src.name}" from path: {src.path}')
-            source = Source(self, src)
-            if source.info.exists():
+            logger.debug(f'Loading source "{src.name}" from path: {src.uri}')
+            source = resolve(src)
+            if source.reachable():
                 self.sources.append(source)
             else:
                 logger.warning(
@@ -36,12 +48,15 @@ class ProjectContext(QueryEngineMixin, ContextBase):
                 )
 
         for source in self.sources:
-            self.register_source(source)
+            source.register(self.get_connection())
 
         self._ensure_log_file()
 
     def analyzer(self) -> Analyzer:
-        return Analyzer(self)
+        return Analyzer()
+
+    def set_context(self):
+        _set_context(Context(self.profile, self.settings, self))
 
     def _ensure_log_file(self):
         self.home = PROJECTS_DIR / self.name
@@ -60,14 +75,14 @@ class ProjectContext(QueryEngineMixin, ContextBase):
     def sources_by_type(self) -> dict[str, list[str]]:
         groups: dict[str, list[str]] = {}
         for src in self.sources:
-            groups.setdefault(src.info.get_type().value, []).append(src.name)
+            groups.setdefault(src.get_type(), []).append(src.name)
         sorted_groups = {
             k: sorted(v) for k, v in sorted(groups.items(), key=lambda x: x[0])
         }
         return sorted_groups
 
     def source_names(self) -> list[str]:
-        return [src.source.name for src in self.sources]
+        return [src.name for src in self.sources]
 
     def source_get(self, name: str) -> Source:
         source = next((s for s in self.sources if s.name == name), None)
@@ -88,7 +103,7 @@ class ProjectContext(QueryEngineMixin, ContextBase):
         self.__dict__.update(obj.__dict__)
         return self
 
-    def source_attach(self, name: str, path: str, kind: str) -> ProjectContext:
+    def source_attach(self, name: str, path: str) -> ProjectContext:
         """Attach a new source to the project and reinitialize the context."""
         if not _VALID_IDENTIFIER.match(name):
             raise LakefrontError(
@@ -96,12 +111,12 @@ class ProjectContext(QueryEngineMixin, ContextBase):
                 "Names must start with a letter or underscore and contain only "
                 "letters, digits, and underscores."
             )
-        if not util.PathInfo(path, self.profile).exists():
+        if not fs.PathInfo(path, self.profile).exists():
             raise LakefrontError(f'Path "{path}" does not exist or is inaccessible.')
         if any(s.name == name for s in self.sources):
             raise SourceExistsError(f'Source with name "{name}" already exists.')
 
-        new_source = models.DataSource(name=name, path=path)
+        new_source = models.DataSource(name=name, uri=path)
         ProjectConfigurationService.add_source(self.name, new_source)
         return self.reinitialize()
 
@@ -111,5 +126,6 @@ class ProjectContext(QueryEngineMixin, ContextBase):
             raise SourceNotFoundError(f'Source with name "{name}" not found.')
 
         ProjectConfigurationService.remove_source(self.name, name)
-        self.deregister_source(name)
+        src = self.source_get(name)
+        src.deregister(self.get_connection())
         return self.reinitialize()

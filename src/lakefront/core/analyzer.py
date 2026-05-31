@@ -1,6 +1,5 @@
 import pandas as pd
 
-from .base import ContextBase
 from .exceptions import LlmError
 
 SYSTEM_PROMPT = """\
@@ -10,22 +9,24 @@ Use markdown with headers and bullet points. Be specific — reference actual
 column names, values and numbers from the profile.
 """
 
+from .context import get_context
+
 
 class Analyzer:
-    def __init__(self, ctx: ContextBase):
-        self.ctx = ctx
-        self._limit = ctx.settings.core.analyzer_row_limit
+    def __init__(self):
+        self.ctx = get_context()
+        self._limit = self.ctx.settings.core.analyzer_row_limit
 
     def analyze_sql(self, sql: str) -> dict:
         """Run a SQL query and profile the resulting DataFrame."""
-        result = self.ctx.query(sql)
+        result = self.ctx.project.query(sql)
         df = result.df()
         return self.analyze_pandas(df, name="query_result")
 
     def analyze_source(self, source_name: str) -> dict:
         """Profile an entire source by sampling it with a SQL query."""
         sql = f'SELECT * FROM "{source_name}" LIMIT {self._limit}'
-        result = self.ctx.query(sql)
+        result = self.ctx.project.query(sql)
         df = result.df()
         return self.analyze_pandas(df, name=source_name)
 

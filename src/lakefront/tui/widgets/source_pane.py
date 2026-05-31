@@ -211,7 +211,7 @@ class SourcePane(Widget):
         else:
             name, path = result["name"], result["path"]
             try:
-                self.ctx.source_attach(name=name, path=path, kind="local")
+                self.ctx.source_attach(name=name, path=path)
             except LakefrontError as e:
                 self.notify(str(e), severity="error", timeout=8)
                 return

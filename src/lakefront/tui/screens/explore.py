@@ -59,6 +59,7 @@ class ExploreScreen(Screen):
     @work(thread=True)
     def _load_profile(self) -> None:
         """Sample the source and build a statistical profile."""
+        self.ctx.set_context()
         try:
             if self._sql:
                 self._profile = self.analyzer.analyze_sql(self._sql)
@@ -92,6 +93,7 @@ class ExploreScreen(Screen):
 
     @work(thread=True)
     def _ask_llm(self, question: str) -> None:
+        self.ctx.set_context()
         if self._profile is None:
             self.app.call_from_thread(
                 self.notify, "Profile not ready yet", severity="warning"
@@ -101,7 +103,9 @@ class ExploreScreen(Screen):
         try:
             md = self.ctx.analyzer().ask_llm(question, self._profile)
         except LlmError as e:
-            self.app.call_from_thread(self.notify, f"LLM request failed: {e}", severity="error")
+            self.app.call_from_thread(
+                self.notify, f"LLM request failed: {e}", severity="error"
+            )
             md = f"**Error:** {e}"
         self.app.call_from_thread(self._set_insights, md)
 

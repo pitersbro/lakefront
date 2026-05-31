@@ -27,7 +27,7 @@ def ensure_demo_project() -> None:
         ("customers", str(data_dir / "customers.csv"), "Sample customers (200 rows)"),
     ]:
         ProjectConfigurationService.add_source(
-            "demo", models.DataSource(name=name, path=path, description=desc)
+            "demo", models.DataSource(name=name, uri=path, description=desc)
         )
 
 
@@ -38,17 +38,26 @@ def _write_orders(path: Path) -> None:
     with path.open("w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(
-            ["order_id", "customer_id", "status", "created_at", "amount_usd", "discount_pct"]
+            [
+                "order_id",
+                "customer_id",
+                "status",
+                "created_at",
+                "amount_usd",
+                "discount_pct",
+            ]
         )
         for i in range(500):
-            writer.writerow([
-                10_000_001 + i,
-                rng.randint(1, 200),
-                rng.choice(statuses),
-                (base + timedelta(seconds=rng.randint(0, 86400 * 365))).isoformat(),
-                round(rng.uniform(5, 2000), 2) if rng.random() > 0.04 else "",
-                round(rng.uniform(0, 0.5), 3) if rng.random() > 0.45 else "",
-            ])
+            writer.writerow(
+                [
+                    10_000_001 + i,
+                    rng.randint(1, 200),
+                    rng.choice(statuses),
+                    (base + timedelta(seconds=rng.randint(0, 86400 * 365))).isoformat(),
+                    round(rng.uniform(5, 2000), 2) if rng.random() > 0.04 else "",
+                    round(rng.uniform(0, 0.5), 3) if rng.random() > 0.45 else "",
+                ]
+            )
 
 
 def _write_customers(path: Path) -> None:
@@ -57,12 +66,16 @@ def _write_customers(path: Path) -> None:
     base = datetime(2020, 1, 1)
     with path.open("w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["customer_id", "country", "signup_date", "ltv_usd", "is_active"])
+        writer.writerow(
+            ["customer_id", "country", "signup_date", "ltv_usd", "is_active"]
+        )
         for i in range(1, 201):
-            writer.writerow([
-                i,
-                rng.choice(countries),
-                (base + timedelta(days=rng.randint(0, 1500))).date().isoformat(),
-                round(rng.uniform(0, 10000), 2),
-                rng.random() > 0.2,
-            ])
+            writer.writerow(
+                [
+                    i,
+                    rng.choice(countries),
+                    (base + timedelta(days=rng.randint(0, 1500))).date().isoformat(),
+                    round(rng.uniform(0, 10000), 2),
+                    rng.random() > 0.2,
+                ]
+            )

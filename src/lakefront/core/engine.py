@@ -1,20 +1,33 @@
+from dataclasses import dataclass
+
 import duckdb
+import pandas as pd
+import pyarrow as pa
 
 from lakefront.log import logger
 
-from .base import QueryResult, Source
 from .config import Settings
+
+
+@dataclass
+class QueryResult:
+    relation: duckdb.DuckDBPyRelation
+    sql: str
+
+    def df(self) -> pd.DataFrame:
+        return self.relation.fetchdf()
+
+    def arrow(self) -> pa.Table:
+        return self.relation.arrow()
+
+    def __getattr__(self, item):
+        # Proxy any missing attributes to the underlying relation
+        return getattr(self.relation, item)
 
 
 class QueryEngineMixin:
     settings: Settings
     _con: duckdb.DuckDBPyConnection | None = None
-
-    _CREATE_VIEW_TAMPLATE = """
-        CREATE VIEW IF NOT EXISTS {name} 
-        AS SELECT * FROM {reader}('{path}')
-        """
-    _DROP_VIEW_TEMPLATE = "DROP VIEW IF EXISTS {name}"
 
     def configure_s3(self):
         con = self.get_connection()
@@ -58,30 +71,6 @@ class QueryEngineMixin:
         )
         self._con = conn
         return self._con
-
-    def register_source(self, source: Source):
-        conn = self.get_connection()
-        logger.debug(
-            f'Registering source "{source.name}" with path: {source.info.path}'
-        )
-        name = source.name
-        reader = "read_parquet"
-        path = source.info.path
-        if source.info.is_csv():
-            reader = "read_csv_auto"
-        elif source.info.is_dataset():
-            path = f"{source.info.path}/**/*.parquet"
-        if source.info.is_s3():
-            path = f"s3://{path}"
-        sql = self._CREATE_VIEW_TAMPLATE.format(
-            name=name, reader=reader, path=path
-        ).strip()
-        conn.execute(sql)
-
-    def deregister_source(self, name: str):
-        conn = self.get_connection()
-        sql = self._DROP_VIEW_TEMPLATE.format(name=name).strip()
-        conn.execute(sql)
 
     def query(self, sql: str) -> QueryResult:
         conn = self.get_connection()
