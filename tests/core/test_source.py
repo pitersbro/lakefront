@@ -18,7 +18,7 @@ def temp_csv(tmp_path):
 
 
 def test_local_file(ctx):
-    source = resolve(ctx._sources[0])
+    source = ctx.sources[0]
     assert isinstance(source, LocalFile)
     assert source.name == "file_1"
     assert source.reachable() == True

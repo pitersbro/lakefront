@@ -33,14 +33,9 @@ def test_context_sources_can_be_grouped_by_type(ctx):
     assert len(groups["PARQUET"]) == 1
 
 
-def test_context_source_not_found_ignored():
-    model = models.Project(
-        name="bad-project",
-        profile="default",
-        sources=[models.DataSource(name="weird_source", uri="/path/to/data")],
-    )
-    ctx = core.ProjectContext.from_model(model)
-    assert len(ctx.sources) == 0
+def test_project_not_found():
+    with pytest.raises(LakefrontError, match="Project 'bad-project' not found"):
+        core.ProjectContext.load("bad-project")
 
 
 def test_context_source_attach_nonexistent_path_raises(ctx):
