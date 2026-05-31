@@ -47,7 +47,7 @@ lakefront init
 lakefront projects create my-project -d "My first project"
 
 # 3. Attach a data source (local Parquet or CSV)
-lakefront projects source add -p my-project -n orders -k local --path /data/orders.parquet
+lakefront projects source add -p my-project -n orders --uri /data/orders.parquet
 
 # 4. Open the TUI
 lakefront ui --project my-project
@@ -138,11 +138,14 @@ lakefront projects delete my-project --yes
 ### Source Management
 
 Data sources are attached to a project and point to a local path or S3 prefix.
+The source type is inferred from the URI scheme — bare paths and `file://`
+URIs resolve to local files, `s3://` to S3, and other known schemes are passed
+through as-is.
 
 ```bash
-# Add a source
-lakefront projects source add -p my-project -n raw -k s3 --path s3://bucket/raw/
-lakefront projects source add -p my-project -n local -k local --path /data/parquet/
+# Add a source (scheme inferred from the URI)
+lakefront projects source add -p my-project -n raw --uri s3://bucket/raw/
+lakefront projects source add -p my-project -n local --uri /data/parquet/
 
 # Remove a source
 lakefront projects source remove -p my-project -n raw
