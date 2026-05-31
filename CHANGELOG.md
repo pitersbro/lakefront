@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.9.3 (2026-05-31)
+
+### Fix
+
+- context not available in tui workers
+
+### Refactor
+
+- **core**: simplify project loading
+
 ## v0.9.2 (2026-05-31)
 
 ### Refactor
