@@ -14,19 +14,19 @@ from .context import get_context
 
 class Analyzer:
     def __init__(self):
-        self.ctx = get_context()
-        self._limit = self.ctx.settings.core.analyzer_row_limit
+        self.project = get_context().project
+        self._limit = self.project.settings.core.analyzer_row_limit
 
     def analyze_sql(self, sql: str) -> dict:
         """Run a SQL query and profile the resulting DataFrame."""
-        result = self.ctx.project.query(sql)
+        result = self.project.query(sql)
         df = result.df()
         return self.analyze_pandas(df, name="query_result")
 
     def analyze_source(self, source_name: str) -> dict:
         """Profile an entire source by sampling it with a SQL query."""
         sql = f'SELECT * FROM "{source_name}" LIMIT {self._limit}'
-        result = self.ctx.project.query(sql)
+        result = self.project.query(sql)
         df = result.df()
         return self.analyze_pandas(df, name=source_name)
 
@@ -105,17 +105,17 @@ class Analyzer:
 
     def llm_enabled(self) -> bool:
         return (
-            self.ctx.settings.anthropic.enabled is True
-            and self.ctx.settings.anthropic.api_key != ""
-            and self.ctx.settings.anthropic.url != ""
+            self.project.settings.anthropic.enabled is True
+            and self.project.settings.anthropic.api_key != ""
+            and self.project.settings.anthropic.url != ""
         )
 
     def ask_llm(self, question: str, profile: dict) -> str:
         if not self.llm_enabled():
             raise LlmError("LLM is disabled. Please check your settings.")
 
-        url = self.ctx.settings.anthropic.url
-        api_key = self.ctx.settings.anthropic.api_key
+        url = self.project.settings.anthropic.url
+        api_key = self.project.settings.anthropic.api_key
         import json
 
         import httpx

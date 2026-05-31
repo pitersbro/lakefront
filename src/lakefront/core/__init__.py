@@ -14,7 +14,9 @@ from .exceptions import (
     SourceNotFoundError,
     SourceTypeInvalidError,
 )
-from .project import ProjectContext
+from .project import Project
+
+ProjectContext = Project
 
 
 def get_version() -> str:
@@ -24,8 +26,7 @@ def get_version() -> str:
 
 
 def get_project(name: str) -> ProjectContext:
-    project = ProjectConfigurationService.get(name)
-    return ProjectContext.from_model(project)
+    return Project.load(name)
 
 
 def list_projects() -> list[str]:
