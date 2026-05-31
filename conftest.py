@@ -34,20 +34,20 @@ def pytest_configure(config):
         "test-project",
         models.DataSource(
             name="file_1",
-            path=(HERE / "tests/core/file1.parquet").as_posix(),
+            uri=(HERE / "tests/core/file1.parquet").as_posix(),
         ),
     )
     proj.add_source(
         "test-project",
         models.DataSource(
             name="file_2",
-            path=(HERE / "tests/core/file2.csv").as_posix(),
+            uri=(HERE / "tests/core/file2.csv").as_posix(),
         ),
     )
     proj.add_source(
         "test-project",
         models.DataSource(
             name="dataset_1",
-            path=(HERE / "tests/core/dataset1").as_posix(),
+            uri=(HERE / "tests/core/dataset1").as_posix(),
         ),
     )

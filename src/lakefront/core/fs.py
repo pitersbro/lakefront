@@ -1,5 +1,6 @@
 from enum import Enum
 from functools import lru_cache
+from urllib.parse import urlparse
 
 import pyarrow.fs as fs
 
@@ -11,6 +12,7 @@ class PathType(Enum):
     DATASET = "DATASET"
     CSV = "CSV"
     PARQUET = "PARQUET"
+    DATABASE = "DATABASE"
     UNKNOWN = "UNKNOWN"
 
 
@@ -20,6 +22,7 @@ class PathKind(Enum):
 
 
 S3_PREFIX = "s3://"
+FILE_PREFIX = "file://"
 
 
 def resolve_filesystem(path: str, profile: str) -> fs.FileSystem:
@@ -54,15 +57,34 @@ class PathInfo:
     including its type and filesystem."""
 
     def __init__(self, path: str, profile: str):
-        self.path = path
-        self.fs = resolve_filesystem(path, profile)
+        self.original_path = path
         self._is_s3 = False
-        if self.path.startswith(S3_PREFIX):
+
+        # Normalize path BEFORE resolving filesystem
+        if path.startswith(S3_PREFIX):
             self._is_s3 = True
-            # For S3 paths, we want to remove the "s3://"
-            # prefix for filesystem operations
             self.path = path[len(S3_PREFIX) :]
+        elif path.startswith(FILE_PREFIX):
+            self.path = urlparse(path).path  # "/tmp/data.parquet" ✅
+        else:
+            self.path = path
+
+        self.fs = resolve_filesystem(path, profile)
         self.path = self.fs.normalize_path(self.path)
+        # self.path = path
+        # self.fs = resolve_filesystem(path, profile)
+        # self._is_s3 = False
+        # if self.path.startswith(S3_PREFIX):
+        #     self._is_s3 = True
+        #     # For S3 paths, we want to remove the "s3://"
+        #     # prefix for filesystem operations
+        #     self.path = path[len(S3_PREFIX) :]
+        #
+        # if self.path.startswith(FILE_PREFIX):
+        #     self.path = path[len(FILE_PREFIX) :]
+        #
+        # self.path = self.fs.normalize_path(self.path)
+        #
 
     @lru_cache(maxsize=128)
     def exists(self) -> bool:

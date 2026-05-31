@@ -71,15 +71,14 @@ lakefront projects delete <project-name> [--yes]
 
 #### Data Sources
 
-Data source commands manage individual data sources within a project. A source can be a parquet file, CSV file, parquet dataset, or delta table.
+Data source commands manage individual data sources within a project. A source can be a parquet file, CSV file, parquet dataset, or delta table. The source type is inferred from the URI scheme (bare paths and `file://` resolve to local files, `s3://` to S3).
 
 ```bash
 # Add a data source to a project
 lakefront projects source add \
   --project <project-name> \
   --name <source-name> \
-  --kind <local|s3> \
-  --path <path-to-data> \
+  --uri <uri-or-path> \
   [--description <text>]
 
 # Remove a data source from a project

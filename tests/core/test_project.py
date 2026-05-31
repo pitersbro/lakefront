@@ -13,7 +13,7 @@ def test_context_is_created(ctx):
 
 def test_context_all_attached_source_types_can_be_queried_with_sql(ctx):
     for source in ctx.sources:
-        result = ctx.query(f"SELECT * FROM '{source.source.name}'").fetchdf()
+        result = ctx.query(f"SELECT * FROM '{source.name}'").fetchdf()
         assert result.shape == (3, 4)
 
 
@@ -37,7 +37,7 @@ def test_context_source_not_found_ignored():
     model = models.Project(
         name="bad-project",
         profile="default",
-        sources=[models.DataSource(name="weird_source", path="/path/to/data")],
+        sources=[models.DataSource(name="weird_source", uri="/path/to/data")],
     )
     ctx = core.ProjectContext.from_model(model)
     assert len(ctx.sources) == 0
@@ -45,27 +45,27 @@ def test_context_source_not_found_ignored():
 
 def test_context_source_attach_nonexistent_path_raises(ctx):
     with pytest.raises(LakefrontError, match="does not exist"):
-        ctx.source_attach("myfile", kind="local", path="nonexisting.csv")
+        ctx.source_attach("myfile", path="nonexisting.csv")
 
 
 def test_context_source_attach_invalid_name_raises(tmp_path, ctx):
     src = tmp_path / "file.csv"
     src.touch()
     with pytest.raises(LakefrontError, match="Invalid source name"):
-        ctx.source_attach("my-invalid name!", kind="local", path=src.as_posix())
+        ctx.source_attach("my-invalid name!", path=src.as_posix())
 
 
 def test_context_source_attach_duplicate_name_raises(tmp_path, ctx):
     src = tmp_path / "file.csv"
     src.touch()
     with pytest.raises(SourceExistsError, match="already exists"):
-        ctx.source_attach(ctx.sources[0].name, kind="local", path=src.as_posix())
+        ctx.source_attach(ctx.sources[0].name, path=src.as_posix())
 
 
 def test_context_attach_detach_source_cycle(tmp_path, ctx):
     src = tmp_path / "file1.csv"
     src.touch()
-    ctx.source_attach("attached1", path=src.as_posix(), kind="local")
+    ctx.source_attach("attached1", path=src.as_posix())
     assert len(ctx.sources) == 4
     assert ctx.query("select * from attached1").df().shape == (0, 1)
 

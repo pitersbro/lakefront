@@ -94,7 +94,7 @@ class TestSourceCommands:
                 "test-project",
                 "--name",
                 "new-test-source",
-                "--path",
+                "--uri",
                 "/tmp/test",
             ],
         )
@@ -112,7 +112,7 @@ class TestSourceCommands:
                 "source-project",
                 "--name",
                 "test-source",
-                "--path",
+                "--uri",
                 "/tmp/data",
             ],
         )
@@ -131,7 +131,7 @@ class TestSourceCommands:
                 "desc-source-project",
                 "--name",
                 "desc-source",
-                "--path",
+                "--uri",
                 "/tmp/data",
                 "--description",
                 "CSV source",
@@ -151,7 +151,7 @@ class TestSourceCommands:
                 "does-not-exist",
                 "--name",
                 "test",
-                "--path",
+                "--uri",
                 "/tmp",
             ],
         )
@@ -170,7 +170,7 @@ class TestSourceCommands:
                 "remove-source-project",
                 "--name",
                 "temp-source",
-                "--path",
+                "--uri",
                 "/tmp",
             ],
         )
