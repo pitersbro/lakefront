@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.2 (2026-05-31)
+
+### Refactor
+
+- **cli**: identify sources by URI scheme, replace --path with --uri
+- **core**: introduce Source protocol and URI-based data sources
+
 ## v0.9.1 (2026-05-05)
 
 ### Fix
