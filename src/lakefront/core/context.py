@@ -1,5 +1,3 @@
-# context.py
-from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any
 
@@ -13,14 +11,17 @@ class Context:
     project: Any
 
 
-current_context: ContextVar[Context] = ContextVar("current_context")
+current_context: Context | None = None
 
 
 def get_context() -> Context:
-    """Get the current project context from the context variable."""
-    return current_context.get()
+    """Get the current project context. Raises an error if no context is set."""
+    if current_context is None:
+        raise LookupError("No project context set. Call set_context() first.")
+    return current_context
 
 
 def set_context(context: Context):
-    """Set the current project context in the context variable."""
-    current_context.set(context)
+    """Set the current project context by assigning it to the context variable."""
+    global current_context
+    current_context = context

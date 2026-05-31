@@ -37,7 +37,6 @@ class ProfilerPane(Widget):
         # multiple workers run concurrently. Only the worker whose generation still
         # matches _generation when it finishes is the latest request — all earlier
         # ones discard their results instead of updating the UI with stale data.
-        self.ctx.set_context()
         self._generation += 1
         generation = self._generation
         try:
