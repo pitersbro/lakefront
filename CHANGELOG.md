@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.10.0 (2026-06-01)
+
+### Feat
+
+- **tui**: enable configuration profile editing via tui
+
+### Fix
+
+- **test**: test env points to real home dir
+
 ## v0.9.3 (2026-05-31)
 
 ### Fix
