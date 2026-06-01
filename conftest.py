@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -5,14 +6,31 @@ from dotenv import load_dotenv
 HERE = Path(__file__).parent
 
 
+def _resolve_env_file(default: str = "test.env") -> str:
+    """Read the --env-file value straight from argv.
+
+    The env file must be loaded at conftest import time, before any nested
+    conftest imports ``lakefront.core`` and freezes ``LAKEFRONT_HOME`` from the
+    environment. That happens during initial conftest loading, well before
+    ``pytest_configure`` runs and option parsing is available — so we scan argv.
+    """
+    for i, arg in enumerate(sys.argv):
+        if arg == "--env-file" and i + 1 < len(sys.argv):
+            return sys.argv[i + 1]
+        if arg.startswith("--env-file="):
+            return arg.split("=", 1)[1]
+    return default
+
+
+# Redirect LAKEFRONT_HOME (via test.env) before core is imported anywhere.
+load_dotenv(_resolve_env_file(), override=True)
+
+
 def pytest_addoption(parser):
     parser.addoption("--env-file", default="test.env")
 
 
 def pytest_configure(config):
-    env_file = config.getoption("--env-file", default="test.env")
-    load_dotenv(env_file, override=True)
-
     from lakefront import core, models
 
     conf = core.ProfileConfigurationService

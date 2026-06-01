@@ -8,6 +8,15 @@ from textual.screen import Screen
 from textual.widgets import DataTable, Footer, Header, Static
 
 from lakefront import core
+from lakefront.tui.screens.configuration import SettingsEditorScreen
+
+
+class NavTable(DataTable):
+    BINDINGS = [
+        *DataTable.BINDINGS,
+        Binding("j", "cursor_down", "Down", show=False),
+        Binding("k", "cursor_up", "Up", show=False),
+    ]
 
 
 class NavigationScreen(Screen):
@@ -15,6 +24,7 @@ class NavigationScreen(Screen):
 
     BINDINGS = [
         Binding("q", "app.exit", "Quit", show=True),
+        Binding("e", "edit_profile", "Edit Configuration", show=True),
     ]
 
     def compose(self) -> ComposeResult:
@@ -22,11 +32,16 @@ class NavigationScreen(Screen):
         with Center(id="nav-body"):
             with Vertical(id="nav-container"):
                 yield Static("PROJECTS", id="nav-title")
-                yield DataTable(id="projects-table", cursor_type="row")
+                yield NavTable(id="projects-table", cursor_type="row")
         yield Footer()
 
     def on_mount(self) -> None:
         self._load_projects()
+
+    def action_edit_profile(self):
+        table = self.query_one("#projects-table", NavTable)
+        profile = table.get_row_at(table.cursor_row)[4]
+        self.app.push_screen(SettingsEditorScreen(profile))
 
     @work(thread=True)
     def _load_projects(self) -> None:
@@ -41,11 +56,13 @@ class NavigationScreen(Screen):
                 updated = project.updated_at.strftime("%Y-%m-%d")
                 description = project.description or "—"
                 sources = str(len(project.sources))
+                profile = project.profile
             except Exception:
                 updated = "—"
                 description = "error loading project"
                 sources = "—"
-            rows.append((name, description, sources, updated))
+                profile = "—"
+            rows.append((name, description, sources, updated, profile))
         self.app.call_from_thread(self._populate_table, rows)
 
     def _show_empty(self) -> None:
@@ -62,8 +79,8 @@ class NavigationScreen(Screen):
         )
 
     def _populate_table(self, rows: list[tuple]) -> None:
-        table = self.query_one("#projects-table", DataTable)
-        table.add_columns("Project", "Description", "Sources", "Updated")
+        table = self.query_one("#projects-table", NavTable)
+        table.add_columns("Project", "Description", "Sources", "Updated", "Profile")
         for row in rows:
             table.add_row(*row, key=row[0])
         table.focus()
