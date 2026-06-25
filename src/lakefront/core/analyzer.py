@@ -25,7 +25,9 @@ class Analyzer:
 
     def analyze_source(self, source_name: str) -> dict:
         """Profile an entire source by sampling it with a SQL query."""
-        sql = f'SELECT * FROM "{source_name}" LIMIT {self._limit}'
+        sql = f'SELECT * FROM "{source_name}"'
+        if self._limit and self._limit > 0:
+            sql += f" LIMIT {self._limit}"
         result = self.project.query(sql)
         df = result.df()
         return self.analyze_pandas(df, name=source_name)
