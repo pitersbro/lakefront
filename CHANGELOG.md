@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.11.0 (2026-06-26)
+
+### Feat
+
+- **core**: analyzer ai uses claude sonnet-4-6 by default
+- **core**: analyzer set to 0 (default) considers entire dataset
+
 ## v0.10.0 (2026-06-01)
 
 ### Feat
