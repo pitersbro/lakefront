@@ -211,3 +211,10 @@ scripts/
 DOCS/
 tests/core/runtime/
 .claude/
+
+# Local planning & presentation artifacts (not part of the library)
+PROJECT.md
+presentation.md
+presentation.pdf
+presentation/
+PROW.pdf
