@@ -8,10 +8,10 @@ from .projects import projects_cli
 
 # from rich.table import Table
 
-app = typer.Typer()
+app = typer.Typer(help="Lakefront — a terminal-based lakehouse observability platform.")
 projects = typer.Typer()
 app.add_typer(projects, name="projects")
-db_app = typer.Typer()
+db_app = typer.Typer(help="Inspect and manage the project's DuckDB database.")
 app.add_typer(db_app, name="db")
 
 
@@ -33,7 +33,7 @@ def init():
     console.print("[bold green]Initialization complete![/]")
 
 
-@app.command()
+@app.command(help="Show the installed Lakefront version.")
 def version():
     console.print(f"[white]{core.get_version()}[/]")
 
@@ -75,7 +75,7 @@ def demo():
     run_app("demo")
 
 
-@app.command()
+@app.command(help="Open the interactive TUI for a project (or the project navigator).")
 def ui(
     project: str = typer.Option(
         None, "--project", "-p", help="Project to open (shows navigation screen if omitted)"

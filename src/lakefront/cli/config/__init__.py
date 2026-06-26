@@ -6,11 +6,13 @@ from lakefront import core
 
 svc = core.ProfileConfigurationService
 
-config_cli = typer.Typer(name="config")
+config_cli = typer.Typer(
+    name="config", help="Manage configuration profiles (dev / staging / prod)."
+)
 console = Console()
 
 
-@config_cli.command(name="list")
+@config_cli.command(name="list", help="List all configuration profiles.")
 def list_profiles():
     profiles = svc.list_profiles()
 
@@ -18,7 +20,7 @@ def list_profiles():
     console.print(profiles)
 
 
-@config_cli.command()
+@config_cli.command(help="Show Lakefront config directories and paths.")
 def info():
     info = svc.info()
     table = Table(title="Configuration Service Info", show_header=True)
@@ -29,7 +31,7 @@ def info():
     console.print(table)
 
 
-@config_cli.command(name="create")
+@config_cli.command(name="create", help="Create a new configuration profile.")
 def create_profile(
     profile: str = typer.Option(
         ..., "--profile", "-p", help="The name of the profile to create."
@@ -43,7 +45,7 @@ def create_profile(
         console.print(f"[bold red]{e}[/]")
 
 
-@config_cli.command(name="delete")
+@config_cli.command(name="delete", help="Delete a configuration profile.")
 def delete_profile(
     profile: str = typer.Option(
         ..., "--profile", "-p", help="The name of the profile to delete."
@@ -62,7 +64,7 @@ def delete_profile(
         console.print(f"[bold red]{e}[/]")
 
 
-@config_cli.command()
+@config_cli.command(help="Inspect a profile's current settings.")
 def inspect(
     profile: str = typer.Option(
         None,
@@ -93,13 +95,13 @@ def inspect(
     console.print(table)
 
 
-@config_cli.command(name="get-active")
+@config_cli.command(name="get-active", help="Show which profile is currently active.")
 def get_active_profile():
     name = svc.get_active_profile()
     console.print(f"[bold green]Active profile: {name}[/]")
 
 
-@config_cli.command(name="set-active")
+@config_cli.command(name="set-active", help="Switch the active configuration profile.")
 def set_active_profile(
     profile: str = typer.Option(
         None,
