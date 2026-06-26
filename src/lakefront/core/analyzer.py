@@ -118,6 +118,7 @@ class Analyzer:
 
         url = self.project.settings.anthropic.url
         api_key = self.project.settings.anthropic.api_key
+        model = self.project.settings.anthropic.model
         import json
 
         import httpx
@@ -135,7 +136,7 @@ class Analyzer:
                     "content-type": "application/json",
                 },
                 json={
-                    "model": "claude-sonnet-4-20250514",
+                    "model": model,
                     "max_tokens": 1024,
                     "system": SYSTEM_PROMPT,
                     "messages": [{"role": "user", "content": user_msg}],
