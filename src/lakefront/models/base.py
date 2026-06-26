@@ -19,7 +19,7 @@ class CoreConfig(BaseModel):
         default="tokyo-night",
         description="The default theme for a project. Overrides the app theme if app is run in a project context.",
     )
-    analyzer_row_limit: int = 1000
+    analyzer_row_limit: int = 0
 
 
 class DuckDBConfig(BaseModel):
@@ -30,6 +30,10 @@ class DuckDBConfig(BaseModel):
 class AnthropicConfig(BaseModel):
     url: str = "https://api.anthropic.com/v1"
     api_key: str = Field(default="", json_schema_extra={"secret": True})
+    model: str = Field(
+        default="claude-sonnet-4-6",
+        description="Anthropic model id used for dataset insights.",
+    )
     enabled: bool = Field(default=False, description="Whether to enable LLM features")
 
 

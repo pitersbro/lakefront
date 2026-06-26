@@ -6,14 +6,18 @@ from lakefront import core, models
 
 svc = core.ProjectConfigurationService
 
-source_cli = typer.Typer(name="source")
-projects_cli = typer.Typer(name="projects")
+source_cli = typer.Typer(
+    name="source", help="Attach, remove and sync a project's data sources."
+)
+projects_cli = typer.Typer(
+    name="projects", help="Create, inspect and manage projects."
+)
 console = Console()
 
 projects_cli.add_typer(source_cli)
 
 
-@projects_cli.command(name="list")
+@projects_cli.command(name="list", help="List all projects.")
 def list_projects():
     names = svc.list_projects()
     if not names:
@@ -23,11 +27,15 @@ def list_projects():
         console.print(f"  {name}")
 
 
-@projects_cli.command(name="create")
+@projects_cli.command(name="create", help="Create a new project.")
 def create_project(
     name: str = typer.Argument(..., help="Project name"),
-    description: str = typer.Option("", "--description", "-d"),
-    profile: str = typer.Option("default", "--profile", "-p"),
+    description: str = typer.Option(
+        "", "--description", "-d", help="Human-readable project description"
+    ),
+    profile: str = typer.Option(
+        "default", "--profile", "-p", help="Config profile to pin the project to"
+    ),
 ):
     try:
         project = svc.create(name, description=description, profile=profile)
@@ -39,7 +47,7 @@ def create_project(
         raise typer.Exit(1)
 
 
-@projects_cli.command(name="inspect")
+@projects_cli.command(name="inspect", help="Show a project's metadata and source count.")
 def inspect_project(
     name: str = typer.Argument(..., help="Project name"),
 ):
@@ -62,7 +70,7 @@ def inspect_project(
     console.print(table)
 
 
-@projects_cli.command(name="delete")
+@projects_cli.command(name="delete", help="Delete a project (prompts for confirmation).")
 def delete_project(
     name: str = typer.Argument(..., help="Project name"),
     confirm: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation"),
@@ -77,12 +85,14 @@ def delete_project(
         raise typer.Exit(1)
 
 
-@source_cli.command(name="add")
+@source_cli.command(name="add", help="Attach a data source (local path or s3:// URI) to a project.")
 def add_source(
-    project: str = typer.Option(..., "--project", "-p"),
-    name: str = typer.Option(..., "--name", "-n"),
-    uri: str = typer.Option(..., "--uri", "-u"),
-    description: str = typer.Option("", "--description", "-d"),
+    project: str = typer.Option(..., "--project", "-p", help="Target project name"),
+    name: str = typer.Option(..., "--name", "-n", help="Name for the source (SQL view)"),
+    uri: str = typer.Option(..., "--uri", "-u", help="Source URI; scheme inferred (file/s3)"),
+    description: str = typer.Option(
+        "", "--description", "-d", help="Optional source description"
+    ),
 ):
     try:
         source = models.DataSource(name=name, uri=uri, description=description)
@@ -93,10 +103,10 @@ def add_source(
         raise typer.Exit(1)
 
 
-@source_cli.command(name="remove")
+@source_cli.command(name="remove", help="Detach a data source from a project.")
 def remove_source(
-    project: str = typer.Option(..., "--project", "-p"),
-    name: str = typer.Option(..., "--name", "-n"),
+    project: str = typer.Option(..., "--project", "-p", help="Target project name"),
+    name: str = typer.Option(..., "--name", "-n", help="Name of the source to remove"),
 ):
     try:
         svc.remove_source(project, name)
@@ -106,9 +116,9 @@ def remove_source(
         raise typer.Exit(1)
 
 
-@source_cli.command(name="sync")
+@source_cli.command(name="sync", help="Sync a project's sources from the given paths.")
 def sync_sources(
-    project: str = typer.Option(..., "--project", "-p"),
+    project: str = typer.Option(..., "--project", "-p", help="Target project name"),
     paths: list[str] = typer.Argument(..., help="Source paths to sync"),
 ):
     print(project)

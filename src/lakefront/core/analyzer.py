@@ -25,7 +25,9 @@ class Analyzer:
 
     def analyze_source(self, source_name: str) -> dict:
         """Profile an entire source by sampling it with a SQL query."""
-        sql = f'SELECT * FROM "{source_name}" LIMIT {self._limit}'
+        sql = f'SELECT * FROM "{source_name}"'
+        if self._limit and self._limit > 0:
+            sql += f" LIMIT {self._limit}"
         result = self.project.query(sql)
         df = result.df()
         return self.analyze_pandas(df, name=source_name)
@@ -116,6 +118,7 @@ class Analyzer:
 
         url = self.project.settings.anthropic.url
         api_key = self.project.settings.anthropic.api_key
+        model = self.project.settings.anthropic.model
         import json
 
         import httpx
@@ -133,7 +136,7 @@ class Analyzer:
                     "content-type": "application/json",
                 },
                 json={
-                    "model": "claude-sonnet-4-20250514",
+                    "model": model,
                     "max_tokens": 1024,
                     "system": SYSTEM_PROMPT,
                     "messages": [{"role": "user", "content": user_msg}],
